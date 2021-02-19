@@ -1,4 +1,5 @@
 #include "algo.h"
+#include "getopt.h"
 
 void sortedInsert(ProcessList** head, ProcessList* node) {
     if (*head == NULL) {
@@ -37,37 +38,6 @@ ProcessList* createProcess(int process_id, int burst_time, int arrival_time, int
     return newProc;
 }
 
-ProcessList* getTestData() {
-    FILE* fp;
-    char* line = NULL;
-    size_t len = 0;
-    ssize_t read;
-    
-    int process_id = 0;
-    int arrival_time = 0;
-    int burst_time = 0;
-
-    ProcessList* head = NULL;
-
-    fp = fopen("./data.csv", "r");
-    if (fp == NULL)
-        return NULL;
-
-    while ((read = getline(&line, &len, fp)) != -1) {
-        sscanf(line, "%d, %d, %d\n", &process_id, &burst_time, &arrival_time);
-
-        ProcessList* newProc = NULL;
-        newProc = createProcess(process_id, burst_time, arrival_time, 0, 0);
-        sortedInsert(&head, newProc);
-    }
-
-    fclose(fp);
-    if (line)
-        free(line);
-    
-    return head;
-}
-
 void printProcessList(ProcessList*  n) {
     while (n != NULL) {
         if (n->next->next == NULL) {
@@ -96,7 +66,12 @@ void runProcesses(ProcessList* processes, int* time, int* k_factor) {
         printf("Time passed: %d\n", *time);
         if (num_of_processes == 0) {
             printf("Running PID %d for %d cycles\n", processes->process_id, processes->burst_time);
+
             *time += processes->burst_time;
+            processes->turnaround_time = *time - processes->arrival_time;
+            processes->waiting_time = processes->turnaround_time - processes->burst_time;
+            printf("Turnaround time for PID %d: %d\n", processes->process_id, processes->turnaround_time);
+            printf("Waiting time for PID %d: %d\n", processes->process_id, processes->waiting_time);
             previous = processes;
             processes = processes->next;
             num_of_processes++;
@@ -144,10 +119,13 @@ void runProcesses(ProcessList* processes, int* time, int* k_factor) {
         
         printf("Running PID %d for %d cycles\n", processes->process_id, processes->burst_time);
         *time += processes->burst_time;
+        processes->turnaround_time = *time - processes->arrival_time;
+        processes->waiting_time = processes->turnaround_time - processes->burst_time;
+        printf("Turnaround time for PID %d: %d\n", processes->process_id, processes->turnaround_time);
+        printf("Waiting time for PID %d: %d\n", processes->process_id, processes->waiting_time);
         previous = processes;
         processes = processes->next;
         num_of_processes++;
-
         
         printf("======================\n");
     }
@@ -156,44 +134,89 @@ void runProcesses(ProcessList* processes, int* time, int* k_factor) {
     
 }
 
+ProcessList* getTestData(char* filepath) {
+    FILE* fp;
+    char* line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    
+    int process_id = 0;
+    int arrival_time = 0;
+    int burst_time = 0;
+
+    ProcessList* head = NULL;
+
+    if (filepath == NULL) {
+        filepath = "./data.csv";
+    }
+
+    fp = fopen(filepath, "r");
+    if (fp == NULL)
+        return NULL;
+
+    while ((read = getline(&line, &len, fp)) != -1) {
+        sscanf(line, "%d, %d, %d\n", &process_id, &burst_time, &arrival_time);
+
+        ProcessList* newProc = NULL;
+        newProc = createProcess(process_id, burst_time, arrival_time, 0, 0);
+        sortedInsert(&head, newProc);
+    }
+
+    fclose(fp);
+    if (line)
+        free(line);
+    
+    return head;
+}
+
 void printHelp(const char* name, const char* option) {
     printf("unknown option: %s\n", option);
     printf("usage:\t%s [flags]\n", name);
     printf("-d\tdebug mode\n");
     printf("-h\tprint this help menu\n");
+    printf("-i\tspecify input filepath");
     printf("-k\tincreases k factor on the alternate loops\n");
     return;
 }
 
-// char getopt(const char* options) {
-//     while (options != '\0') {
-
-//     }
-// }
-
-
 int main(int argc, char* argv[]) {
     int k_factor = 2;
     int time = 0;
+    int opt = 0;
+    char* filepath = NULL;
 
     if (argc > 1) {
-        if (strncmp(argv[1], "-d", 2) == 0) {
-            DEBUG_MODE = 1;
-        } else if (strncmp(argv[1], "-k", 2) == 0) { 
-            K_INCREMENT = 1;
-        } else if (strncmp(argv[1], "-h", 2) == 0) {
-            printHelp(argv[0], argv[1]);
-            return -1;
-        } else {
-            printHelp(argv[0], argv[1]);
-            return -1;
+        while ((opt = getopt(argc, argv, "dhki:")) != -1) {
+            switch (opt) {
+                case 'd':
+                    DEBUG_MODE = 1;
+                    break;
+                case 'h':
+                    printHelp(argv[0], argv[1]);
+                    break;
+                case 'k':
+                    K_INCREMENT = 1;
+                    break;
+                case 'i':
+                    filepath = optarg;
+                    break;
+                default: /* '?' */
+                    printHelp(argv[0], argv[1]);
+                    return -1;
+            }
         }
     }
 
     ProcessList* process_list = NULL;
 
 
-    process_list = getTestData();
+    process_list = getTestData(filepath);
+
+    if (process_list == NULL) {
+        printf("unable to open file: %s\n", filepath);
+        return -1;
+    }
+
     printf("SJF Process List: ");
 
     printProcessList(process_list);
