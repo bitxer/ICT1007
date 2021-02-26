@@ -29,4 +29,5 @@ int getTestData(char* filepath, int* num_of_processes, ProcessList** process_lis
 void sortedInsert(ProcessList** head, ProcessList* node, int sortBy);
 ProcessList* createProcess(int process_id, int arrival_time, int burst_time, int waiting_time, int turnaround_time);
 void printProcessList(ProcessList*  n);
-void runProcesses(ProcessList* processes, int* time, int* k_factor, int* total_num_of_processes);
+void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int* time, int* k_factor, int* total_num_of_processes);
+ProcessList* copyProcess(ProcessList* source);
