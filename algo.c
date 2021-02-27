@@ -80,6 +80,23 @@ void printProcessList(ProcessList*  n) {
     }
 }
 
+void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, int*time) {
+    // Check incoming arrivals if there are expected processes
+    // Insert the process into the ready queue
+    // Pop the inserted process and check if next process has the same time
+    // Otherwise break
+    for (;;) {
+        if ((*incoming_arrivals)->arrival_time <= *time) {
+            // create a copy of the new process and insert into the ready queue
+            // have to create a copy if not the linked list will follow
+            sortedInsert(ready_queue, copyProcess((*incoming_arrivals)), BURST_TIME);
+            (*incoming_arrivals) = (*incoming_arrivals)->next;
+        } else {
+            return;
+        }
+    }
+}
+
 void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int* time, int* k_factor, int* total_num_of_processes) {
     int num_of_processes = 0;
 
@@ -87,21 +104,7 @@ void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int*
 
     for (*time; num_of_processes < *total_num_of_processes; *time = *time+1) {
 
-        // Check incoming arrivals if there are expected processes
-        // Insert the process into the ready queue
-        // Pop the inserted process and check if next process has the same time
-        // Otherwise break
-        for (;;) {
-            if (incoming_arrivals->arrival_time <= *time) {
-                // create a copy of the new process and insert into the ready queue
-                // have to create a copy if not the linked list will follow
-                sortedInsert(&ready_queue, copyProcess(incoming_arrivals), BURST_TIME);
-                incoming_arrivals = incoming_arrivals->next;
-            } else {
-                break;
-            }
-        }
-        
+        checkArrivals(&ready_queue, &incoming_arrivals, time);
         
         if (ready_queue == NULL) {
             printf("Time passed:%d\n", *time);
@@ -117,8 +120,20 @@ void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int*
             if (num_of_processes == 0) {
                 printf("Running PID %d for %d cycles\n", ready_queue->process_id, ready_queue->burst_time);
 
-                *time += ready_queue->burst_time;
+                // get time before running, add the burst time to check 
+                // what time to expect the end of run to break the loop
+
+                int time_before_running = *time;
+                int time_to_end = time_before_running + ready_queue->burst_time;
+
+                while (*time < time_to_end) {
+                    *time += 1;
+                    printf("Time passed: %d\n", *time);
+                    checkArrivals(&ready_queue, &incoming_arrivals, time);
+                }
+
                 ready_queue->turnaround_time = *time - ready_queue->arrival_time;
+
                 ready_queue->waiting_time = ready_queue->turnaround_time - ready_queue->burst_time;
                 printf("Turnaround time for PID %d: %d\n", ready_queue->process_id, ready_queue->turnaround_time);
                 printf("Waiting time for PID %d: %d\n", ready_queue->process_id, ready_queue->waiting_time);
@@ -168,7 +183,19 @@ void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int*
             }
             
             printf("Running PID %d for %d cycles\n", ready_queue->process_id, ready_queue->burst_time);
-            *time += ready_queue->burst_time;
+            
+            // get time before running, add the burst time to check 
+            // what time to expect the end of run to break the loop
+
+            int time_before_running = *time;
+            int time_to_end = time_before_running + ready_queue->burst_time;
+
+            while (*time < time_to_end) {
+                *time += 1;
+                printf("Time passed: %d\n", *time);
+                checkArrivals(&ready_queue, &incoming_arrivals, time);
+            }
+
             ready_queue->turnaround_time = *time - ready_queue->arrival_time;
             ready_queue->waiting_time = ready_queue->turnaround_time - ready_queue->burst_time;
             printf("Turnaround time for PID %d: %d\n", ready_queue->process_id, ready_queue->turnaround_time);
@@ -294,7 +321,7 @@ int main(int argc, char* argv[]) {
     printf("SJF Process List: ");
 
     printProcessList(process_list);
-    runProcesses(ready_queue, incoming_arrivals, &time, &k_factor, &total_num_of_processes);
+    // runProcesses(ready_queue, incoming_arrivals, &time, &k_factor, &total_num_of_processes);
     
     // printf("Resultant process order: ");
     // printProcessList(process_list);

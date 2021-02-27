@@ -31,3 +31,4 @@ ProcessList* createProcess(int process_id, int arrival_time, int burst_time, int
 void printProcessList(ProcessList*  n);
 void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int* time, int* k_factor, int* total_num_of_processes);
 ProcessList* copyProcess(ProcessList* source);
+void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, int* time);
