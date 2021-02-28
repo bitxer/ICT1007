@@ -54,30 +54,14 @@ void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList
         // is bigger than the current node's field
         // AND the current field is less than the next fiel OR if there is no next
         if (node_field > current_field && (current->next == NULL || node_field <= next_field)) {
-            if (current != protectedProcess) {
-                node->next = current->next;
-
-                // if (current->next != NULL) {
-                //     if (sortBy == BURST_TIME) {
-                //         next_field = current->next->burst_time;
-                //     } else if (sortBy == ARRIVAL_TIME) {
-                //         next_field = current->next->arrival_time;
-                //     }
-                // }
-
-                current->next = node;
-                return;
-            } else if (current->next == NULL) {
-                current->next = node;
-                return;
-            } else {
-                // current is protected
-                node->next = current->next;
+            if (current->next == NULL) {
                 current->next = node;
                 return;
             }
 
-
+            node->next = current->next;
+            current->next = node;
+            return;
         }
         
         current = current->next;
@@ -330,9 +314,6 @@ int getTestData(char* filepath, int* num_of_processes, ProcessList** process_lis
     if (line)
         free(line);
 
-    if (*num_of_processes == 0)
-        return -1;
-    
     return 0;
 }
 
