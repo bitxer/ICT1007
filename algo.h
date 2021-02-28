@@ -30,6 +30,7 @@ int getTestData(char* filepath, int* num_of_processes, ProcessList** process_lis
 void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList* protectedProcess);
 ProcessList* createProcess(int process_id, int arrival_time, int burst_time, int waiting_time, int turnaround_time);
 void printProcessList(ProcessList*  n);
-void runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, ProcessList* resultant_list, int* time, int* k_factor, int* total_num_of_processes);
+ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int* time, int* k_factor, int* total_num_of_processes);
 ProcessList* copyProcess(ProcessList* source);
 void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, int* time, ProcessList* protectedProcess);
+void calculateStats(ProcessList* process_list);
