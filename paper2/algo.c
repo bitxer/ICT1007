@@ -179,7 +179,9 @@ ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arriva
 
         
         if (ready_queue == NULL) {
-            printf("Time passed:%d\n", *time);
+            if (DEBUG_MODE)
+                printf("Time passed:%d\n", *time);
+            
             printf("No process to run\n");
             continue;
         }
@@ -275,14 +277,20 @@ ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arriva
 
             while (*time < time_to_end) {
                 *time += 1;
-                printf("Time passed: %d\n", *time);
+
+                if (DEBUG_MODE)
+                    printf("Time passed: %d\n", *time);
+
                 checkArrivals(&ready_queue, &incoming_arrivals, time, running_process);
             }
 
             running_process->turnaround_time = *time - running_process->arrival_time;
             running_process->waiting_time = running_process->turnaround_time - running_process->burst_time;
-            printf("Turnaround time for PID %d: %d\n", running_process->process_id, running_process->turnaround_time);
-            printf("Waiting time for PID %d: %d\n", running_process->process_id, running_process->waiting_time);
+
+            if (DEBUG_MODE){
+                printf("Turnaround time for PID %d: %d\n", running_process->process_id, running_process->turnaround_time);
+                printf("Waiting time for PID %d: %d\n", running_process->process_id, running_process->waiting_time);
+            }
 
             // check if the finished process is in the ready queue
             // int running_process_id = running_process->process_id;
@@ -319,7 +327,7 @@ int getTestData(char* filepath, int* num_of_processes, ProcessList** process_lis
     int burst_time = 0;
 
     if (filepath == NULL) {
-        filepath = "./data.csv";
+        filepath = "paper2/data.csv";
     }
 
     fp = fopen(filepath, "r");
@@ -375,8 +383,10 @@ void calculateStats(ProcessList* process_list) {
     float average_turnaround_time = 0.0;
 
     while (process_list != NULL) {
-        printf("Waiting Time for PID %d: %d\n", process_list->process_id, process_list->waiting_time);
-        printf("Turnaround Time for PID %d: %d\n", process_list->process_id, process_list->turnaround_time);
+        if (DEBUG_MODE) {
+            printf("Waiting Time for PID %d: %d\n", process_list->process_id, process_list->waiting_time);
+            printf("Turnaround Time for PID %d: %d\n", process_list->process_id, process_list->turnaround_time);
+        }
         total_waiting_time += process_list->waiting_time;
         total_turnaround_time += process_list->turnaround_time;
 
@@ -451,16 +461,13 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    printf("number of data: %d\n", total_num_of_processes);
-
-
-    printf("SJF Process List: ");
-
-    printProcessList(process_list);
+    printf("Number of Processes: %d\n", total_num_of_processes);
+    // printf("SJF Process List: ");
+    // printProcessList(process_list);
     resultant_list = runProcesses(ready_queue, incoming_arrivals, &time, &k_factor, &total_num_of_processes);
     
     printf("Resultant process order: ");
-    printProcessList(resultant_list);
+    printProcessList(resultant_list); 
 
     calculateStats(resultant_list);
 
