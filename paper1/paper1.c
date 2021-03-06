@@ -47,18 +47,33 @@ int insert_process_q(int pid, int t_arrival, int t_exec){
     return SUCCESS;
 }
 
-void insert_ready_q(PROCESS_PTR arrival_q, PROCESS_PTR current_process) {
-    PROCESS_PTR p_prev = NULL;
+void sort_ready_queue(){
+    PROCESS_PTR p_iter = ready_q_head;
+    int completed = 0;
+    while (!completed) {
+        int is_larger = p_iter->p_remain > p_iter->next->p_remain;
+        completed |= ~larger;
+        if (is_larger) {
+            p_iter = ready_q_head;
+            for (q_iter = ready_q_head; q_iter != NULL && q_iter->t_remain < p_iter->t_remain; q_iter = q_iter->next);
+            completed = 0;
+        } else {
+            p_iter = p_iter->next;
+        }
+    }
+}
 
-    int pid = current_process->pid;
+void insert_ready_q(PROCESS_PTR arrival_q) {
     if (ready_q_head == NULL) {
         // if ready queue is not initialisation
         ready_q_head = arrival_q;
         return;
     }
-    for (PROCESS_PTR q_iter = ready_q_head; q_iter->pid != pid; q_iter = q_iter->next) {
-        (if )
-    }
+    PROCESS_PTR arrival_iter = arrival_q;
+    for (arrival_iter; arrival_iter->next != NULL; arrival_iter = arrival_q->next);
+    arrival_iter->next = ready_q_head;
+    ready_q_head = arrival_q;
+    sort_ready_queue();
 }
 
 /*
@@ -79,7 +94,7 @@ PROCESS_PTR check_arrival(int t_current) {
         p_iter->status_flag = READY;
         if (arrival_q == NULL) {
             // Ready Queue is not initialised
-            arrival_q = p_iter;
+            arrival_q = p_iter; 
         }
         prev_head = p_iter;
     }
