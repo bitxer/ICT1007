@@ -36,4 +36,10 @@ struct Process {
 typedef struct Process PROCESS;
 typedef PROCESS *PROCESS_PTR;
 
+// Function prototypes
+void sort_ready_queue();
+void print_queue(PROCESS_PTR q_head);
+PROCESS_PTR check_arrival(int t_current);
+void insert_ready_q(PROCESS_PTR arrival_q);
+int insert_process_q(int pid, int t_arrival, int t_exec);
 #endif

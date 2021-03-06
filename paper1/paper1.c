@@ -76,18 +76,25 @@ int insert_process_q(int pid, int t_arrival, int t_exec){
     return SUCCESS;
 }
 
+/*
+ * Sort Ready queue using bubble sort
+ */
 void sort_ready_queue(){
+    // Initialise some variables for use in loop
     PROCESS_PTR p_iter = ready_q_head, p_prev = NULL;
+
+    // Bubble sort ready queue
     while (p_iter != NULL && p_iter->next != NULL) {
         if (p_iter->t_remain > p_iter->next->t_remain) {
-            // Remove p_iter from linkedlist
+            // If current process is not in order
+            // Remove current process from ready queue
             if (p_prev != NULL) {
                 p_prev->next = p_iter->next;
             } else {
                 ready_q_head = p_iter->next;
             }
 
-            // Insert removed process to linkedlist
+            // Insert removed process to correct position in ready queue
             for (PROCESS_PTR q_iter = ready_q_head->next, prev_q = ready_q_head; q_iter != NULL; prev_q = q_iter, q_iter = q_iter->next) {
                 if (prev_q->t_remain < p_iter->t_remain && p_iter->t_remain < q_iter->t_remain) {
                     p_iter->next = prev_q->next;
@@ -95,41 +102,65 @@ void sort_ready_queue(){
                     break;
                 }
             }
+            // Prepare pointers for next iteration
             p_iter = ready_q_head;
             p_prev = NULL;
         } else {
+            // Prepare pointers for next iteration
             p_iter = p_iter->next;
         }
     }
 }
 
+/*
+ * Insert arrival queue into ready queue
+ *
+ * Parameters:
+ *   arrival_q   - Pointer to head of arrival queue
+ * 
+ */
 void insert_ready_q(PROCESS_PTR arrival_q) {
     if (ready_q_head == NULL) {
         // if ready queue is not initialisation
         ready_q_head = arrival_q;
         return;
     }
-
+    
+    // Sort ready queue based on remaining time using bubble sort
     sort_ready_queue();
     DEBUG("[After] Sort ready queue\n");
     print_report(ready_q_head);
+
+    // Declare some variables to be used in loop
     PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
-    PROCESS_PTR ready_iter = ready_q_head;
-    for (ready_iter; ready_iter != NULL && arrival_iter != NULL; ready_iter = ready_iter->next) {
+    PROCESS_PTR ready_iter = ready_q_head; 
+
+    // Add new process to queue using insertion sort
+    while (ready_iter != NULL && arrival_iter != NULL) {
         if (ready_iter->t_remain > arrival_iter->t_remain) {
+            // If current process in ready queue have a larger remaining time than in current process in arrival queue
+            // Remember next process in arrival queue
             PROCESS_PTR temp_process = arrival_iter->next;
             if (p_prev == NULL) {
+                // If p_prev is null, process is at start of ready_queue
+                // Add process to start of ready queue
                 arrival_iter->next = ready_q_head;
                 ready_q_head = arrival_iter;
             } else {
+                // If p_prev is not null, process is not at the start of ready_queue
+                // Add process to queue at correct place
                 p_prev->next = arrival_iter;
                 arrival_iter->next = ready_iter;
             }
+            // Update pointers to prepare for next loop
             arrival_iter = temp_process;
             ready_iter = ready_q_head;
             p_prev = NULL;
         } else {
+            // Pointer is not at correct position
+            // Prepare pointers for next iteration
             p_prev = ready_iter;
+            ready_iter = ready_iter->next;
         }
     }
 }
@@ -164,9 +195,12 @@ PROCESS_PTR check_arrival(int t_current) {
     return arrival_q;
 }
 
+/*
+ * Print the process id of processes in the queue
+ */
 void print_queue(PROCESS_PTR q_head) {
     for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
-        printf("%d\t", process->pid + 1);
+        printf("%d\t", process->pid);
     }
     printf("\n");
 }
@@ -211,10 +245,13 @@ int main() {
         }
     }
     printf("Arrangement of processes in ready queue\n");
+    // Initialise variables for use for program execution
     int p_term = 0;
     while (process_q_head || ready_q_head) {        
         DEBUG("**************************\n")
         DEBUG("Time: %d\n", t_current);
+
+        // Check if new process arrived
         PROCESS_PTR arrival_q = check_arrival(t_current);
         // Insert to ready queue if new arrival is present
         if (arrival_q) {
@@ -227,17 +264,17 @@ int main() {
         DEBUG("CURRENT_PROCESS\n");
 
         if (!ready_q_head) {
+            // if no process is in ready queue
+            // Continue to next loop
             continue;
         }
-        
+
         if (!arrival_q && !p_term) {
             // Round robin if no new process
-            // p_prev = NULL;
             PROCESS_PTR p_end = ready_q_head;
             for (p_end; p_end->next != NULL; p_end = p_end->next);
             p_end->next = ready_q_head;
             ready_q_head = ready_q_head->next;
-            // p_iter = ready_q_head;
             p_end = p_end->next;
             p_end->next = NULL;
         }
@@ -250,12 +287,12 @@ int main() {
         ready_q_head->t_remain -= t_quantum;
 
         if (ready_q_head->t_remain <= 0) {
-            p_term = 1;
             // Handle if remaining time is negative
             t_current += ready_q_head->t_remain;
             ready_q_head->t_remain = 0;
 
             // Mark process as terminated
+            p_term = 1;
             ready_q_head->status_flag = TERMINATED;
             ready_q_head->t_turn = t_current - ready_q_head->t_arrival;
             ready_q_head->t_wait = ready_q_head->t_turn - ready_q_head->t_exec;
@@ -281,19 +318,25 @@ int main() {
         DEBUG("\n\n\n");
     }
 
-
+    // Initialise variables for use with process analysis
     float total_wait = 0.0, total_turn = 0.0;
     PROCESS_PTR p_iter = term_q_head;
     DEBUG("Terminated queue\n");
     print_report(term_q_head);
     while (p_iter != NULL) {
+        // Print process details to screen
         printf("***** Process %d *****\n", p_iter->pid + 1);
         printf("Turnaround Time: %d\n", p_iter->t_turn);
         printf("Waiting Time: %d\n", p_iter->t_wait);
+
+        // Compute total turnaround and waiting time
         total_turn += p_iter->t_turn;
         total_wait += p_iter->t_wait;
+
+        // Prepare pointer for next loop
         p_iter = p_iter->next;
     }
+
     printf("\n\n");
     printf("Average Waiting Time: %.1f\n", total_wait / n_proc);
     printf("Average Turnaround Time: %.1f\n", total_turn / n_proc);
