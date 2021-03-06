@@ -170,6 +170,9 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
  *
  * Parameters:
  *   t_current - Current time
+ * 
+ * Returns:
+ *   PROCESS_PTR  - Pointer to start of arrival queue
  */
 PROCESS_PTR check_arrival(int t_current) {
     PROCESS_PTR arrival_q = NULL, prev_head = NULL;
@@ -197,6 +200,8 @@ PROCESS_PTR check_arrival(int t_current) {
 
 /*
  * Print the process id of processes in the queue
+ * Parameters:
+ *   q_head     - Pointer to head of queue
  */
 void print_queue(PROCESS_PTR q_head) {
     for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
