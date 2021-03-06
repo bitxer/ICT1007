@@ -9,6 +9,33 @@ PROCESS_PTR ready_q_head = NULL;    // Head pointer for ready queue
 PROCESS_PTR term_q_head = NULL;     // Head pointer for Terminated process queue
 PROCESS_PTR term_q_tail = NULL;     // Tail pointer for Terminated process queue
 
+void print_process(PROCESS_PTR process) {
+    if (process == NULL) {
+        DEBUG("NULL\n");
+        return;
+    }
+    int pid = process->pid;
+    DEBUG("***** Process %d [%p] *****\n", pid, process);
+    DEBUG("Arrival Time for Process %d: %d\n", pid + 1, process->t_arrival);
+    DEBUG("Burst Time for Process %d: %d\n", pid + 1, process->t_exec);
+    DEBUG("Remaining Time required: %d\n", process->t_remain);
+    DEBUG("Status Flag: %d\n", process->status_flag);
+    DEBUG("Pointer for next element: %p\n", process->next);
+    DEBUG("\n");
+}
+
+void print_report(PROCESS_PTR head) {
+    // DEVELOPMENT CODE
+    // SANITY: PRINT OUT LINKEDLIST FOR VISUALISATION
+    PROCESS_PTR p_iter = head;
+    DEBUG("********** Linkedlist report **********\n");
+    while (p_iter != NULL) {
+        print_process(p_iter);
+        p_iter = p_iter->next;
+    }
+    // END DEVELOPMENT CODE
+}
+
 /*
  * Insert Process to Process Queue
  *
@@ -48,15 +75,26 @@ int insert_process_q(int pid, int t_arrival, int t_exec){
 }
 
 void sort_ready_queue(){
-    PROCESS_PTR p_iter = ready_q_head;
-    int completed = 0;
-    while (!completed) {
-        int is_larger = p_iter->p_remain > p_iter->next->p_remain;
-        completed |= ~larger;
-        if (is_larger) {
+    PROCESS_PTR p_iter = ready_q_head, p_prev = NULL;
+    while (p_iter != NULL && p_iter->next != NULL) {
+        if (p_iter->t_remain > p_iter->next->t_remain) {
+            // Remove p_iter from linkedlist
+            if (p_prev != NULL) {
+                p_prev->next = p_iter->next;
+            } else {
+                ready_q_head = p_iter->next;
+            }
+
+            // Insert removed process to linkedlist
+            for (PROCESS_PTR q_iter = ready_q_head->next, prev_q = ready_q_head; q_iter != NULL; prev_q = q_iter, q_iter = q_iter->next) {
+                if (prev_q->t_remain < p_iter->t_remain && p_iter->t_remain < q_iter->t_remain) {
+                    p_iter->next = prev_q->next;
+                    prev_q->next = p_iter;
+                    break;
+                }
+            }
             p_iter = ready_q_head;
-            for (q_iter = ready_q_head; q_iter != NULL && q_iter->t_remain < p_iter->t_remain; q_iter = q_iter->next);
-            completed = 0;
+            p_prev = NULL;
         } else {
             p_iter = p_iter->next;
         }
@@ -69,11 +107,25 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
         ready_q_head = arrival_q;
         return;
     }
-    PROCESS_PTR arrival_iter = arrival_q;
-    for (arrival_iter; arrival_iter->next != NULL; arrival_iter = arrival_q->next);
-    arrival_iter->next = ready_q_head;
-    ready_q_head = arrival_q;
+
     sort_ready_queue();
+    DEBUG("[After] Sort ready queue\n");
+    print_report(ready_q_head);
+    PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
+    for (PROCESS_PTR ready_iter = ready_q_head; ready_iter != NULL && arrival_iter != NULL; ready_iter = ready_iter->next) {
+        if (ready_iter->t_remain > arrival_iter->t_remain) {
+            PROCESS_PTR temp_process = arrival_iter->next;
+            if (p_prev == NULL) {
+                arrival_iter->next = ready_q_head;
+                ready_q_head = arrival_iter;
+            } else {
+                p_prev->next = arrival_iter;
+                arrival_iter->next = ready_iter;
+            }
+            arrival_iter = temp_process;
+        }
+        p_prev = ready_iter;
+    }
 }
 
 /*
@@ -88,22 +140,29 @@ PROCESS_PTR check_arrival(int t_current) {
     if (process_q_head == NULL) {
         return arrival_q;
     }
+    
+    if (process_q_head->t_arrival <= t_current) {
+        arrival_q = process_q_head;
+    } else {
+        return arrival_q;
+    }
 
     // Loop through process queue for all process who arrived before current time
-    for (PROCESS_PTR p_iter; p_iter != NULL; p_iter = p_iter->next){
+    for (PROCESS_PTR p_iter = arrival_q; p_iter != NULL && p_iter->t_arrival <= t_current; p_iter = p_iter->next){
         p_iter->status_flag = READY;
-        if (arrival_q == NULL) {
-            // Ready Queue is not initialised
-            arrival_q = p_iter; 
-        }
         prev_head = p_iter;
     }
 
-    if (arrival_q != NULL) {
-        process_q_head = prev_head->next;
-        prev_head->next = NULL;
-    }
+    process_q_head = prev_head->next;
+    prev_head->next = NULL;
     return arrival_q;
+}
+
+void print_queue(PROCESS_PTR q_head) {
+    for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
+        printf("%d\t", process->pid + 1);
+    }
+    printf("\n");
 }
 
 /*
@@ -144,14 +203,22 @@ int main() {
             pid--;
         }
     }
-
+    printf("Arrangement of processes in ready queue\n");
     PROCESS_PTR p_iter = ready_q_head, p_prev = NULL;
     while (process_q_head || ready_q_head) {
+        DEBUG("**************************\n")
+        DEBUG("Time: %d\n", t_current);
         PROCESS_PTR arrival_q = check_arrival(t_current);
         // Insert to ready queue if new arrival is present
         if (arrival_q) {
-            insert_ready_q(arrival_q, p_iter);
+            insert_ready_q(arrival_q);
         }
+        DEBUG("PROCESS QUEUE\n");
+        print_report(process_q_head);
+        DEBUG("READY QUEUE\n");
+        print_report(ready_q_head);
+        DEBUG("\n\n\n");
+        print_queue(ready_q_head);
         
         // Update p_iter pointer
         if (arrival_q || p_iter->next == NULL) {
@@ -171,20 +238,38 @@ int main() {
         p_iter->t_remain -= t_quantum;
 
         if (p_iter->t_remain <= 0) {
+            // DEBUG("----- Before terminate -----\n");
+            // DEBUG("Previous\n");
+            // print_process(p_prev);
+            // DEBUG("Iter\n");
+            // print_process(p_iter);
+            // Set terminated flag
+            p_iter->status_flag = TERMINATED;
             // Handle if remaining time is negative
             t_current += p_iter->t_remain;
             p_iter->t_remain = 0;
             if (term_q_head) {
                 // If terminated queue is initialised
                 term_q_tail->next = p_iter;
+                term_q_tail = p_iter;
             } else {
                 // If terminated queue is not initialised
                 term_q_head = p_iter;
-                term_q_tail = term_q_tail;
+                term_q_tail = term_q_head;
             }
             // Remove process from process queue
-            p_prev->next = p_iter->next;
+            if (p_prev != NULL) {
+                p_prev->next = p_iter->next;
+            } else {
+                ready_q_head = p_iter->next;
+            }
+
             p_iter->next = NULL;
+            // DEBUG("----- After terminate -----\n");
+            // DEBUG("Previous\n");
+            // print_process(p_prev);
+            // DEBUG("Iter\n");
+            // print_process(p_iter);
         }
     }
 }
