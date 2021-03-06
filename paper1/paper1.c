@@ -229,16 +229,7 @@ int main() {
         if (!ready_q_head) {
             continue;
         }
-
-        // Update p_iter pointer
-        // if (arrival_q || p_iter->next == NULL) {
-        //     // If there is a arrival
-        //     p_iter = ready_q_head;
-        //     p_prev = NULL;
-        // } else if (arrival_q) {
-        //     p_prev = p_iter;
-        //     p_iter = p_iter->next;
-        // } 
+        
         if (!arrival_q && !p_term) {
             // Round robin if no new process
             // p_prev = NULL;
@@ -259,11 +250,6 @@ int main() {
         ready_q_head->t_remain -= t_quantum;
 
         if (ready_q_head->t_remain <= 0) {
-            // DEBUG("----- Before terminate -----\n");
-            // DEBUG("Previous\n");
-            // print_process(p_prev);
-            // DEBUG("Iter\n");
-            // print_process(p_iter);
             p_term = 1;
             // Handle if remaining time is negative
             t_current += ready_q_head->t_remain;
@@ -284,11 +270,7 @@ int main() {
                 term_q_tail = term_q_head;
             }
             // Remove process from ready queue
-            // if (p_prev != NULL) {
-                // p_prev->next = p_iter->next;
-            // } else {
             ready_q_head = ready_q_head->next;
-            // }
             term_q_tail->next = NULL;
             DEBUG("----- After terminate -----\n");
             DEBUG("Iter\n");
