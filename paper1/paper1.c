@@ -114,7 +114,8 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
     DEBUG("[After] Sort ready queue\n");
     print_report(ready_q_head);
     PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
-    for (PROCESS_PTR ready_iter = ready_q_head; ready_iter != NULL && arrival_iter != NULL; ready_iter = ready_iter->next) {
+    PROCESS_PTR ready_iter = ready_q_head;
+    for (ready_iter; ready_iter != NULL && arrival_iter != NULL; ready_iter = ready_iter->next) {
         if (ready_iter->t_remain > arrival_iter->t_remain) {
             PROCESS_PTR temp_process = arrival_iter->next;
             if (p_prev == NULL) {
@@ -174,6 +175,7 @@ void print_queue(PROCESS_PTR q_head) {
  * Main Function
  */
 int main() {
+    DEBUG("Debug: Enabled\n");
     // Initialise variables needed for process initialisation
     int n_proc = 0, t_quantum = 0, t_current = 0;
 
@@ -209,8 +211,8 @@ int main() {
         }
     }
     printf("Arrangement of processes in ready queue\n");
-    PROCESS_PTR p_iter = ready_q_head, p_prev = NULL;
-    while (process_q_head || ready_q_head) {
+    int p_term = 0;
+    while (process_q_head || ready_q_head) {        
         DEBUG("**************************\n")
         DEBUG("Time: %d\n", t_current);
         PROCESS_PTR arrival_q = check_arrival(t_current);
@@ -222,70 +224,84 @@ int main() {
         print_report(process_q_head);
         DEBUG("READY QUEUE\n");
         print_report(ready_q_head);
-        print_queue(ready_q_head);
         DEBUG("CURRENT_PROCESS\n");
-        
-        // Update p_iter pointer
-        if (arrival_q || p_iter->next == NULL) {
-            p_iter = ready_q_head;
-            p_prev = NULL;
-        } else {
-            p_prev = p_iter;
-            p_iter = p_iter->next;
-        }
 
-        if (!p_iter) {
+        if (!ready_q_head) {
             continue;
         }
 
-        print_process(p_iter);
+        // Update p_iter pointer
+        // if (arrival_q || p_iter->next == NULL) {
+        //     // If there is a arrival
+        //     p_iter = ready_q_head;
+        //     p_prev = NULL;
+        // } else if (arrival_q) {
+        //     p_prev = p_iter;
+        //     p_iter = p_iter->next;
+        // } 
+        if (!arrival_q && !p_term) {
+            // Round robin if no new process
+            // p_prev = NULL;
+            PROCESS_PTR p_end = ready_q_head;
+            for (p_end; p_end->next != NULL; p_end = p_end->next);
+            p_end->next = ready_q_head;
+            ready_q_head = ready_q_head->next;
+            // p_iter = ready_q_head;
+            p_end = p_end->next;
+            p_end->next = NULL;
+        }
+
+
+        print_process(ready_q_head);
+        print_queue(ready_q_head);
         // "Run" current process
         t_current += t_quantum;
-        p_iter->t_remain -= t_quantum;
+        ready_q_head->t_remain -= t_quantum;
 
-        if (p_iter->t_remain <= 0) {
+        if (ready_q_head->t_remain <= 0) {
             // DEBUG("----- Before terminate -----\n");
             // DEBUG("Previous\n");
             // print_process(p_prev);
             // DEBUG("Iter\n");
             // print_process(p_iter);
-
+            p_term = 1;
             // Handle if remaining time is negative
-            t_current += p_iter->t_remain;
-            p_iter->t_remain = 0;
+            t_current += ready_q_head->t_remain;
+            ready_q_head->t_remain = 0;
 
             // Mark process as terminated
-            p_iter->status_flag = TERMINATED;
-            p_iter->t_turn = t_current - p_iter->t_arrival;
-            p_iter->t_wait = p_iter->t_turn - p_iter->t_exec;
+            ready_q_head->status_flag = TERMINATED;
+            ready_q_head->t_turn = t_current - ready_q_head->t_arrival;
+            ready_q_head->t_wait = ready_q_head->t_turn - ready_q_head->t_exec;
 
             if (term_q_head) {
                 // If terminated queue is initialised
-                term_q_tail->next = p_iter;
-                term_q_tail = p_iter;
+                term_q_tail->next = ready_q_head;
+                term_q_tail = ready_q_head;
             } else {
                 // If terminated queue is not initialised
-                term_q_head = p_iter;
+                term_q_head = ready_q_head;
                 term_q_tail = term_q_head;
             }
-            // Remove process from process queue
-            if (p_prev != NULL) {
-                p_prev->next = p_iter->next;
-            } else {
-                ready_q_head = p_iter->next;
-            }
-
-            p_iter->next = NULL;
-            // DEBUG("----- After terminate -----\n");
-            // DEBUG("Previous\n");
-            // print_process(p_prev);
-            // DEBUG("Iter\n");
-            // print_process(p_iter);
+            // Remove process from ready queue
+            // if (p_prev != NULL) {
+                // p_prev->next = p_iter->next;
+            // } else {
+            ready_q_head = ready_q_head->next;
+            // }
+            term_q_tail->next = NULL;
+            DEBUG("----- After terminate -----\n");
+            DEBUG("Iter\n");
+            print_process(ready_q_head);
+        } else {
+            p_term = 0;
         }
         DEBUG("\n\n\n");
     }
+
+
     float total_wait = 0.0, total_turn = 0.0;
-    p_iter = term_q_head;
+    PROCESS_PTR p_iter = term_q_head;
     DEBUG("Terminated queue\n");
     print_report(term_q_head);
     while (p_iter != NULL) {
@@ -297,6 +313,6 @@ int main() {
         p_iter = p_iter->next;
     }
     printf("\n\n");
-    printf("Average Waiting Time: %f\n", total_wait / n_proc);
-    printf("Average Turnaround Time: %f\n", total_wait / n_proc);
+    printf("Average Waiting Time: %.1f\n", total_wait / n_proc);
+    printf("Average Turnaround Time: %.1f\n", total_turn / n_proc);
 }
