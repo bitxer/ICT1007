@@ -20,6 +20,8 @@ void print_process(PROCESS_PTR process) {
     DEBUG("Burst Time for Process %d: %d\n", pid + 1, process->t_exec);
     DEBUG("Remaining Time required: %d\n", process->t_remain);
     DEBUG("Status Flag: %d\n", process->status_flag);
+    DEBUG("Turnaround time: %d\n", process->t_turn);
+    DEBUG("Waiting time: %d\n", process->t_wait);
     DEBUG("Pointer for next element: %p\n", process->next);
     DEBUG("\n");
 }
@@ -123,8 +125,11 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
                 arrival_iter->next = ready_iter;
             }
             arrival_iter = temp_process;
+            ready_iter = ready_q_head;
+            p_prev = NULL;
+        } else {
+            p_prev = ready_iter;
         }
-        p_prev = ready_iter;
     }
 }
 
@@ -217,8 +222,8 @@ int main() {
         print_report(process_q_head);
         DEBUG("READY QUEUE\n");
         print_report(ready_q_head);
-        DEBUG("\n\n\n");
         print_queue(ready_q_head);
+        DEBUG("CURRENT_PROCESS\n");
         
         // Update p_iter pointer
         if (arrival_q || p_iter->next == NULL) {
@@ -233,6 +238,7 @@ int main() {
             continue;
         }
 
+        print_process(p_iter);
         // "Run" current process
         t_current += t_quantum;
         p_iter->t_remain -= t_quantum;
@@ -243,11 +249,16 @@ int main() {
             // print_process(p_prev);
             // DEBUG("Iter\n");
             // print_process(p_iter);
-            // Set terminated flag
-            p_iter->status_flag = TERMINATED;
+
             // Handle if remaining time is negative
             t_current += p_iter->t_remain;
             p_iter->t_remain = 0;
+
+            // Mark process as terminated
+            p_iter->status_flag = TERMINATED;
+            p_iter->t_turn = t_current - p_iter->t_arrival;
+            p_iter->t_wait = p_iter->t_turn - p_iter->t_exec;
+
             if (term_q_head) {
                 // If terminated queue is initialised
                 term_q_tail->next = p_iter;
@@ -271,5 +282,21 @@ int main() {
             // DEBUG("Iter\n");
             // print_process(p_iter);
         }
+        DEBUG("\n\n\n");
     }
+    float total_wait = 0.0, total_turn = 0.0;
+    p_iter = term_q_head;
+    DEBUG("Terminated queue\n");
+    print_report(term_q_head);
+    while (p_iter != NULL) {
+        printf("***** Process %d *****\n", p_iter->pid + 1);
+        printf("Turnaround Time: %d\n", p_iter->t_turn);
+        printf("Waiting Time: %d\n", p_iter->t_wait);
+        total_turn += p_iter->t_turn;
+        total_wait += p_iter->t_wait;
+        p_iter = p_iter->next;
+    }
+    printf("\n\n");
+    printf("Average Waiting Time: %f\n", total_wait / n_proc);
+    printf("Average Turnaround Time: %f\n", total_wait / n_proc);
 }
