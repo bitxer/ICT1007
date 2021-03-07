@@ -1,6 +1,20 @@
 #include "paper3.h"
 
+/*
+ *  Insert ProcessNode into ProcessNode Queue in master_head
+ * 
+ *  Parameters:
+ *      process_no   -   PID of process
+ *      burst_time   -   burst time of the process
+ *      arrival_time -   arrival time of the process
+ * 
+ *  Return:
+ *      None
+ *
+ */
 void insert_process(int process_no,int burst_time, int arrival_time){
+
+    //Intialise struct values
     PROCESSNODE_PTR tempPtr = (PROCESSNODE_PTR) malloc (sizeof(PROCESSNODE));
     tempPtr->process_no = process_no;
     tempPtr->burst_time = burst_time;
@@ -8,35 +22,63 @@ void insert_process(int process_no,int burst_time, int arrival_time){
     tempPtr->waiting_time = 0;
     tempPtr->turn_around_time = 0;
 
-    if (master_head == NULL){
-        master_head = tempPtr;
+    if (master_head == NULL){       //Check if master head is not created
+        master_head = tempPtr;      //Sets master head to newly created process
     } else {
-        tempPtr->next = master_head;
+        tempPtr->next = master_head;//Adds a new process to the master_head
         master_head = tempPtr;
     }
 }
 
+/*
+ *  Prints the total arrival time, waiting time, turn around time of all process in the queue
+ * 
+ *  Parameters:
+ *      list    - a linklist containig the PROCESSNODE struct
+ * 
+ *  Return:
+ *      None
+ *  
+ */
 void print_list(PROCESSNODE_PTR list){
+    //create a temp value for pointer
     PROCESSNODE_PTR current = list;
+
+    //intialise value for calculating average turn around time and waiting time
     float total_tat = 0;
     float total_wt = 0;
     printf("\nno.\tat\tbt\twt\ttat\n");
+
+    //Prints all values in the linkedlist
     while (current != NULL){
         printf("P%d\t%.2f\t%.2f\t%.2f\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
         total_tat += current->turn_around_time;
         total_wt += current->waiting_time;
         current = current->next;
     }
-
+    //prints avrage waiting time and tunr around time
     printf("Average Waiting Time: %.2f\nAverage Turn Around Time: %.2f\n", total_wt/no_process, total_tat/no_process);
 }
 
+/*
+ *  Sorts the master head according to arrival time
+ * 
+ *  Parameters:
+ *      None
+ * 
+ *  Return:
+ *      None
+ */
 void sort_by_arrival(){
+    //initialise values to perform bubble sort
     PROCESSNODE_PTR current, next;
     int temp_process_no, i, j,k;
     float temp_burst_time, temp_arrival_time, temp_waiting_time;
 
     k = no_process;
+
+    //Performs bubble sort on the linklist
+
     for (i = 0; i < no_process - 1; i++,k--){
         current = master_head;
         next = current->next;
@@ -67,41 +109,66 @@ void sort_by_arrival(){
         }
     }
 }
-
+/*
+ *  Starts the algorithm process
+ * 
+ *  Parameters:
+ *      None
+ * 
+ *  Return:
+ *      None 
+ * 
+ */ 
 void start_process(){
+    //Function will end when master_head is empty
     while (master_head != NULL){
         PROCESSNODE_PTR current = master_head;
+
+        //Add values to ready queue
         while (current != NULL){
+
+            //enters this block if arrival time is less than cpu time
             if ((current->arrival_time - temp_time_taken) <= 0){
                 add_to_ready(current);
                 master_head = current->next;
             }
             current = current->next;
         }
-
-        if (ready_queue == NULL){
+        if (ready_queue == NULL){         //enter this block if no processes is added to ready queue
+            //Gets the next arrival time of the process and updates the cpu time to be the next arrival time
             float next_arrival_time = master_head->arrival_time;
             temp_time_taken = next_arrival_time;
-        } else {
+        } else {        //enter this block if ready queue is created succesfully
             sort_by_burst();
             split_to_small_heavy();
             round_robin(small_task_head);
             set_waiting_time(heavy_task_head);
 
+            //Check if heavy queue exist to perform round robin
             if (heavy_task_head != NULL){
             round_robin(heavy_task_head);
             }
 
             add_to_finish();
             update_waiting_times();
-
+            //resets the pointers of small and heavy queue
             small_task_head = NULL;
             heavy_task_head = NULL;
         }
     }
 }
-
+/*
+ *  Adds the current node to a ready queue
+ *  
+ *  Parameters:
+ *      node    -   PROCESSNODE struct to be added to ready queue
+ * 
+ *  Returns:
+ *      None
+ *  
+ */
 void add_to_ready(PROCESSNODE_PTR node){
+    //initialise temp variables
     PROCESSNODE_PTR tempPtr = (PROCESSNODE_PTR) malloc (sizeof(PROCESSNODE));
     tempPtr->process_no = node->process_no;
     tempPtr->arrival_time = node->arrival_time;
@@ -109,32 +176,52 @@ void add_to_ready(PROCESSNODE_PTR node){
     tempPtr->temp_bt = node->burst_time;
     tempPtr->waiting_time = node->waiting_time;
     
-    if (ready_queue == NULL){
-        ready_queue = tempPtr;
-    } else {
-        tempPtr->next = ready_queue;
+    if (ready_queue == NULL){   //enter this block if ready queue is not created yet
+        ready_queue = tempPtr;  //sets the node to be the ready queue
+    } else {                    //enter this block if ready queue is found
+        tempPtr->next = ready_queue;    //adds the node to the ready queue
         ready_queue = tempPtr;
     }
 }
-
+/*
+ *  Adds the finish process to a finish linklist
+ *  
+ *  Parameters:
+ *      None
+ * 
+ *  Return:
+ *      None
+ * 
+ */
 void add_to_finish(){
-    if (finished_head == NULL){
-        finished_head = small_task_head;
-        finished_head = insert_node_at_end(finished_head, heavy_task_head);
+    if (finished_head == NULL){//enter this block if finished linklist is not created yet
+        finished_head = small_task_head;//sets the linklist to be small head list
+        finished_head = insert_node_at_end(finished_head, heavy_task_head); //Appends the heavy list to the end of linklist
     } else {
-        finished_head = insert_node_at_end(finished_head, small_task_head);
-        finished_head = insert_node_at_end(finished_head, heavy_task_head);
-        //ready_queue->next = finished_head;
-        //finished_head = ready_queue;
+        finished_head = insert_node_at_end(finished_head, small_task_head); //Appends small queue to end of linklist
+        finished_head = insert_node_at_end(finished_head, heavy_task_head); //Appends heavy queue to end of linklist
     }
 }
 
+/**
+ *  Sorts the linklist by its burst time
+ * 
+ *  Parameters:
+ *      None
+ * 
+ *  Return:
+ *      None
+ * 
+ */
 void sort_by_burst(){
+    //initialise value for sorting
     PROCESSNODE_PTR current, next;
     int temp_process_no, i, j,k;
     float temp_burst_time, temp_arrival_time, temp_waiting_time;
-
+    //get the size of ready_queue
     k = size_of_list(ready_queue);
+
+    //perform bubble sort on linklist
     for (i = 0; i < no_process - 1; i++,k--){
         current = ready_queue;
         next = current->next;
@@ -167,6 +254,8 @@ void sort_by_burst(){
     }
 }
 
+/**
+ */
 void split_to_small_heavy(){
     int list_size = size_of_list(ready_queue);
     int middle_node_no = (list_size + 1) / 2;

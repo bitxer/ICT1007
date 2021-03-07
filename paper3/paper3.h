@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//Data structure for ProcessNode
 struct ProcessNode{
     float burst_time;
     float temp_bt;
@@ -14,12 +15,14 @@ struct ProcessNode{
 typedef struct ProcessNode PROCESSNODE;
 typedef PROCESSNODE *PROCESSNODE_PTR;
 
+//Global linkedlist pointers
 PROCESSNODE_PTR master_head = NULL;
 PROCESSNODE_PTR ready_queue = NULL;
 PROCESSNODE_PTR small_task_head = NULL;
 PROCESSNODE_PTR heavy_task_head = NULL;
 PROCESSNODE_PTR finished_head = NULL;
 
+//Global CPU time and no of process
 int no_process = 0;
 float temp_time_taken = 0;
 
