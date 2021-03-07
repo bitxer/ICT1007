@@ -53,7 +53,6 @@ int create_processes(int number_of_process, int arrival_time[], int burst_time[]
 int first_process_dynamic_round_robin_execution(int number_of_process, int count, int number_of_process_with_0_arrival_time, int arrival_time[], int burst_time[], int timeQuantum, int remain_time[], int totalExecutionTime, int waiting_Time[], int turnaround_time[], int *remain_process_ptr) {
 
     for (int i = 0; i < number_of_process; i++) {
-
         if (count == i && number_of_process_with_0_arrival_time > 1) {
             continue;
         } else if (arrival_time[i] == 0  && burst_time[i] > timeQuantum) {
@@ -152,31 +151,30 @@ void sort_by_arrival(int number_of_process, int arrival_time[], int process[], i
 /*      This function assigns the CPU to all the processes in ready queue with burst time less than the time quantum while larger ones are kept hold on.
         If burst time is less than time quantum and more than 0, it will assign CPU to the process. the total execution time will be added to the burst time,
         the burst time of the process will be set to 0 and the number of remaining process will decrement by one which shows that the process has finished execution.
-        The scheduler recalculates the time quantum at the end of current quantum by comparing the arrival time of each processes with the totalExecutionTime. 
+        The scheduler recalculates the time quantum at the end of current quantum by comparing the arrival time of each processes with the totalExecutionTime.
         It then finds the highest burst time within the ready queue and recomputes its timeQuantum.
         If burst time is higher than the time quantum and more than 0, it will put the process at the end of ready queue
-        As soon as all the smaller processes complete their execution, the time quantum is set equal to maximum burst time. 
+        As soon as all the smaller processes complete their execution, the time quantum is set equal to maximum burst time.
 
 */
 
 void dynamic_round_robin_function(int remain_process, int remain_time[], int timeQuantum, int arrival_time[], int burst_time[], int highest_burst_time, int totalExecutionTime, int waiting_Time[], int turnaround_time[], int number_of_process) {
     for (int i = 0; remain_process != 0;) {
-        if (remain_time[i] <= timeQuantum && remain_time[i] > 0) {
-            for (int k = 0; k < number_of_process; k++) {
-                if (arrival_time[k] < totalExecutionTime) {
-                    if (burst_time[k] > highest_burst_time) {
-                        highest_burst_time = burst_time[k];
-                        timeQuantum = highest_burst_time * 0.8;
-                    }
-
+        for (int k = 0; k < number_of_process; k++) {
+            if (arrival_time[k] < totalExecutionTime) {
+                if (burst_time[k] > highest_burst_time) {
+                    highest_burst_time = burst_time[k];
+                    timeQuantum = highest_burst_time * 0.8;
                 }
+
             }
+        }
+        if (remain_time[i] <= timeQuantum && remain_time[i] > 0) {
             totalExecutionTime += remain_time[i];
             waiting_Time[i] = totalExecutionTime - arrival_time[i] - burst_time[i];
             turnaround_time[i] = totalExecutionTime - arrival_time[i];
             remain_time[i] = 0;
             remain_process--;
-
         }
 
 
@@ -198,8 +196,14 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
         else if (totalExecutionTime >= arrival_time[i + 1]) {
             i++;
         }
-        else
+        /* This condition ensures that the last process could arrive during the execution of the second last process. In example 2, P6 can arrive after time = 208 onwards whike
+           P5 is still executing */
+        else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process > 1) {
+            timeQuantum = highest_burst_time;
             i = 0;
+        } else {
+            i = 0;
+        }
     }
 
 }
@@ -224,6 +228,7 @@ void output_result(int process[], int arrival_time[], int burst_time[], int wait
     printf("\nAvg Turnaround Time:\t%.1f", avg_turnaround_time);
 
 }
+
 
 
 
