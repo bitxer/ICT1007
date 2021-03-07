@@ -8,9 +8,6 @@
  *      burst_time   -   burst time of the process
  *      arrival_time -   arrival time of the process
  * 
- *  Return:
- *      None
- *
  */
 void insert_process(int process_no,int burst_time, int arrival_time){
 
@@ -35,9 +32,6 @@ void insert_process(int process_no,int burst_time, int arrival_time){
  * 
  *  Parameters:
  *      list    - a linklist containig the PROCESSNODE struct
- * 
- *  Return:
- *      None
  *  
  */
 void print_list(PROCESSNODE_PTR list){
@@ -63,11 +57,6 @@ void print_list(PROCESSNODE_PTR list){
 /*
  *  Sorts the master head according to arrival time
  * 
- *  Parameters:
- *      None
- * 
- *  Return:
- *      None
  */
 void sort_by_arrival(){
     //initialise values to perform bubble sort
@@ -111,12 +100,6 @@ void sort_by_arrival(){
 }
 /*
  *  Starts the algorithm process
- * 
- *  Parameters:
- *      None
- * 
- *  Return:
- *      None 
  * 
  */ 
 void start_process(){
@@ -162,9 +145,6 @@ void start_process(){
  *  
  *  Parameters:
  *      node    -   PROCESSNODE struct to be added to ready queue
- * 
- *  Returns:
- *      None
  *  
  */
 void add_to_ready(PROCESSNODE_PTR node){
@@ -185,12 +165,6 @@ void add_to_ready(PROCESSNODE_PTR node){
 }
 /*
  *  Adds the finish process to a finish linklist
- *  
- *  Parameters:
- *      None
- * 
- *  Return:
- *      None
  * 
  */
 void add_to_finish(){
@@ -205,12 +179,6 @@ void add_to_finish(){
 
 /**
  *  Sorts the linklist by its burst time
- * 
- *  Parameters:
- *      None
- * 
- *  Return:
- *      None
  * 
  */
 void sort_by_burst(){
@@ -255,10 +223,18 @@ void sort_by_burst(){
 }
 
 /**
+ *  Splits to queue into half where the 1st half will be the small queue, the 2nd half be the heavy queue
+ *  The middle node will be part of the small queue
+ * 
  */
 void split_to_small_heavy(){
+    //gets the size of the quwuw
     int list_size = size_of_list(ready_queue);
+
+    //get the middle node index
     int middle_node_no = (list_size + 1) / 2;
+
+    //separates the nodes into small and heavy queue
     for (int node_no = 1; node_no <= list_size; node_no++, ready_queue = ready_queue->next){
         PROCESSNODE_PTR tempPtr = (PROCESSNODE_PTR) malloc (sizeof(PROCESSNODE));
         tempPtr->process_no = ready_queue->process_no;
@@ -266,17 +242,28 @@ void split_to_small_heavy(){
         tempPtr->burst_time = ready_queue->burst_time;
         tempPtr->temp_bt = ready_queue->temp_bt;
         tempPtr->waiting_time = ready_queue->waiting_time;
-        if (node_no <= middle_node_no){
-            small_task_head = insert_node_at_end(small_task_head, tempPtr);
+        if (node_no <= middle_node_no){//If the index is less than or equal middle node index 
+            small_task_head = insert_node_at_end(small_task_head, tempPtr); //add the node to small queue
         } else {
-            heavy_task_head = insert_node_at_end(heavy_task_head, tempPtr);         
+            heavy_task_head = insert_node_at_end(heavy_task_head, tempPtr); //add the node to heavy queue
         }
     }
 }
 
+/**
+ *  Returns the size of the linklist
+ * 
+ *  Parameter:
+ *      node    - the linklist to find the length of
+ * 
+ *  Return:
+ *      list_size   - size if the linklist
+ */
 int size_of_list(PROCESSNODE_PTR node){
     PROCESSNODE_PTR tempPtr = node;
     int list_size = 0;
+
+    //counts the number of nodes
     while (tempPtr != NULL){
         list_size++;
         tempPtr = tempPtr->next;
@@ -284,6 +271,17 @@ int size_of_list(PROCESSNODE_PTR node){
     return list_size;
 }
 
+/**
+ *  Adds the node to the end of the linklist
+ * 
+ *  Parameter:
+ *      list    - the linklist to add to node to
+ *      to_add  - the node to attach to list
+ * 
+ *  Return:
+ *      list    - the end result of the combined linklist
+ * 
+ */ 
 PROCESSNODE_PTR insert_node_at_end(PROCESSNODE_PTR list,PROCESSNODE_PTR to_add){
     
     // Check if linklist exist
@@ -303,8 +301,19 @@ PROCESSNODE_PTR insert_node_at_end(PROCESSNODE_PTR list,PROCESSNODE_PTR to_add){
     return list;
 }
 
+/**
+ *  Round Robin function
+ * 
+ *  Parameter:
+ *      queue   - the queue to perform Round Robin on
+ * 
+ */
 void round_robin(PROCESSNODE_PTR queue){
+
+    //Get the time quantum of the current queue
     float time_quantum = get_time_quantum(queue);
+
+    //update the cpu time
     temp_time_taken += time_quantum * size_of_list(queue);
 
     float temp_burst_time = 0;
@@ -338,11 +347,10 @@ void round_robin(PROCESSNODE_PTR queue){
                 time_slice_used = time_quantum;
             }
             if (current->temp_bt == 0){
-                //current->waiting_time -= current->arrival_time;
                 current->turn_around_time = current->waiting_time + current->burst_time;
                 process_complete = 1;
             }
-            //Increase wt of other processes
+            //Increase waiting time of other processes
             while(increase_wt != NULL){
                 if (!(current->process_no == increase_wt->process_no || increase_wt->temp_bt == 0)){
                     increase_wt->waiting_time += time_slice_used;
@@ -351,13 +359,23 @@ void round_robin(PROCESSNODE_PTR queue){
             }
             current = current->next;
         }
+        //Checks if the process is completed
         if (process_complete){
-            time_quantum = get_time_quantum(queue);
+            time_quantum = get_time_quantum(queue); //update the current time quantum
         }
     } while(time_quantum != 0);
 
 }
 
+/**
+ *  Calculates the time quantum of the queue
+ * 
+ *  Parameter:
+ *      queue   - the queue the calculate time quantum from
+ * 
+ *  Return:
+ *      average_burst_time  - returns the avergae burst time which is the time quatum for this algorithm
+ */
 float get_time_quantum(PROCESSNODE_PTR queue){
     PROCESSNODE_PTR tempPtr = queue;
     float total_burst_time = 0, average_burst_time = 0;
@@ -365,6 +383,7 @@ float get_time_quantum(PROCESSNODE_PTR queue){
 
     //Sum the value of all burst time in linkedlist
     while (tempPtr != NULL) {
+        //check if the process is not finish
         if (tempPtr->temp_bt != 0){
         total_burst_time += tempPtr->temp_bt;
         queue_size++;
@@ -374,25 +393,38 @@ float get_time_quantum(PROCESSNODE_PTR queue){
 
     //Calculate the average of burst time
     if (queue_size == 0){
-        average_burst_time = 0;
+        average_burst_time = 0; //to prevent division by zero error
     } else {
-        average_burst_time = total_burst_time / queue_size;
+        average_burst_time = total_burst_time / queue_size; 
     }
     return average_burst_time;
 }
 
+/**
+ *  Adds the waiting time of all processes in the heavy queue
+ * 
+ *  Parameter:
+ *      queue   -   the processes in queue
+ * 
+ */
 void set_waiting_time(PROCESSNODE_PTR queue){
     PROCESSNODE_PTR tempPtr = queue;
     while (tempPtr != NULL){
+        //sets the waiting time of the process
         tempPtr->waiting_time = temp_time_taken - tempPtr->arrival_time;
         tempPtr = tempPtr->next;
     }
 }
 
+/**
+ *  Updates the waiting time of processes that are left in master_head
+ */
 void update_waiting_times(){
     PROCESSNODE_PTR tempPtr = master_head;
     while (tempPtr != NULL){
+        //Check if cpu time is more than the process arrival time
         if (temp_time_taken > tempPtr->arrival_time){
+            //increase the waiting time of processes in the queue
             tempPtr->waiting_time += temp_time_taken - tempPtr->arrival_time;
         }
         tempPtr = tempPtr->next;
