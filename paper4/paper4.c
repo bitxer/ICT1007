@@ -161,7 +161,7 @@ void sort_by_arrival(int number_of_process, int arrival_time[], int process[], i
 void dynamic_round_robin_function(int remain_process, int remain_time[], int timeQuantum, int arrival_time[], int burst_time[], int highest_burst_time, int totalExecutionTime, int waiting_Time[], int turnaround_time[], int number_of_process) {
     for (int i = 0; remain_process != 0;) {
         for (int k = 0; k < number_of_process; k++) {
-            if (arrival_time[k] < totalExecutionTime) {
+            if (arrival_time[k] <= totalExecutionTime) {
                 if (burst_time[k] > highest_burst_time) {
                     highest_burst_time = burst_time[k];
                     timeQuantum = highest_burst_time * 0.8;
@@ -196,14 +196,19 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
         else if (totalExecutionTime >= arrival_time[i + 1]) {
             i++;
         }
-        /* This condition ensures that the last process could arrive during the execution of the second last process. In example 2, P6 can arrive after time = 208 onwards whike
+        /* This condition ensures that the last process could arrive during the execution of the second last process. In example 2, P6 can arrive after time = 208 onwards while
            P5 is still executing */
         else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process > 1) {
             timeQuantum = highest_burst_time;
             i = 0;
+        /* This condition ensures that the last process could arrive after the execution of the second last process. In example 2, P6 can arrive after time = 298 onwards after
+           P5 finished execution */
+        } else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process == 1) {
+            totalExecutionTime = arrival_time[i + 1];
         } else {
             i = 0;
         }
+
     }
 
 }
