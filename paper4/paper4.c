@@ -13,9 +13,13 @@
       If all processes have different arrival time, it will find the inital burst time when arrival time is 0.
       Store the total number of "processes with 0 arrival time" & store the iterator with the maximum burst time when arrival time is 0 to the pointer.
       Pointers were used because we can only return 1 variable in this function but we want to make sure the other variables changes their value in memory
+
+      However, what if all processes comes at the same timing example arrival time is 5 instead of 0. Thus, if all processes does not have arrival time = 0, the flag pointer will be assigned 
+      as value 1. It will then set the arrival time of all the processes as 0 because it is easier for calculation later on. However, the arrival time of the process does not change as
+      there is a copy which is stored as "arrival_time_copy". We can then find the first burst time from there.
 */
 
-int create_processes(int number_of_process, int arrival_time[], int burst_time[], int remain_time[], int process[], int *number_of_process_with_0_arrival_time_ptr, int first_burst_time, int *count_ptr) {
+int create_processes(int number_of_process, int arrival_time[], int burst_time[], int remain_time[], int process[], int *number_of_process_with_0_arrival_time_ptr, int first_burst_time, int *count_ptr, int arrival_time_copy[], int *flag_ptr) {
     for (int i = 0; i < number_of_process; i++) {
         printf("Enter Details of Process[%d]\n", i + 1);
         printf("Enter Arrival Time: ");
@@ -23,6 +27,7 @@ int create_processes(int number_of_process, int arrival_time[], int burst_time[]
         printf("Enter Burst Time: ");
         scanf("%d", &burst_time[i]);
         remain_time[i] = burst_time[i];
+        arrival_time_copy[i] = arrival_time[i];
         process[i] = i + 1;
         if (arrival_time[i] == 0) {
             (*number_of_process_with_0_arrival_time_ptr)++;
@@ -33,33 +38,59 @@ int create_processes(int number_of_process, int arrival_time[], int burst_time[]
         }
 
     }
+
+    if (*number_of_process_with_0_arrival_time_ptr == 0) {
+        *flag_ptr = 1;
+        for (int i = 0; i < number_of_process; i++) {
+            arrival_time[i] = 0;
+            if (first_burst_time < burst_time[i]) {
+                first_burst_time = burst_time[i];
+            }
+        }
+    }
+
     return first_burst_time;
+
 }
 
 
 
 
-/*    It will skip the process with the highest burst time as we want to keep the larger process at the back.
-      The scheduler then assigns the CPU to the first process with arrival time 0. If there are 2 processes with arrival time 0, it
-      will skip the process with the highest burst time and execute on another process. If there are only 1 process with arrival time 0,
-      it will assign the CPU to that process instead.
+/*    It will skip the process with the highest burst time as we want to keep the larger process at the back. The scheduler then assigns the CPU to the first process with arrival time 0. If there are 2 processes with arrival time 0, it
+      will skip the process with the highest burst time and execute on another process. If there are only 1 process with arrival time 0,it will assign the CPU to that process instead.
+      It will also skip the process with the highest burst time as well as checking for the condition where all processes have same arrival time(e.g 5), it will have the flag variable
+      set to 1.
       If the burst time is more than the time quantum, the burst time of the process will be subtracted by the time quantum and the total execution will increment by the time quantum
       If the burst time is less than  or equal to the time quantum, totalexecutiontime will be added to the burst time, waiting time and turnaround time can then be caculated.
       We then set that current burst time to zero as it has finished executing and the number of remain_process will decrease by 1.
       For both condition, it will break after the first process is assigned to the CPU as we will then need to check for possible new processes that arrive after this time slice has ended.
+      The flag is equal to 1 if all processes have the same arrival time except 0. Thus, we need 2 more condition loops to check for this possibility
 */
 
 
-int first_process_dynamic_round_robin_execution(int number_of_process, int count, int number_of_process_with_0_arrival_time, int arrival_time[], int burst_time[], int timeQuantum, int remain_time[], int totalExecutionTime, int waiting_Time[], int turnaround_time[], int *remain_process_ptr) {
+int first_process_dynamic_round_robin_execution(int number_of_process, int count, int number_of_process_with_0_arrival_time, int arrival_time[], int burst_time[], int timeQuantum, int remain_time[], int totalExecutionTime, int waiting_Time[], int turnaround_time[], int *remain_process_ptr, int flag) {
 
     for (int i = 0; i < number_of_process; i++) {
-        if (count == i && number_of_process_with_0_arrival_time > 1) {
+        if (count == i && number_of_process_with_0_arrival_time > 1 && flag == 0){
+            continue;
+        }else if (flag == 1 &&(burst_time[i]*0.8 == timeQuantum)){
             continue;
         } else if (arrival_time[i] == 0  && burst_time[i] > timeQuantum) {
             remain_time[i] = remain_time[i] - timeQuantum;
             totalExecutionTime += timeQuantum;
             break;
         } else if (arrival_time[i] == 0 && burst_time[i] <= timeQuantum) {
+            totalExecutionTime += remain_time[i];
+            waiting_Time[i] = totalExecutionTime - arrival_time[i] - burst_time[i];
+            turnaround_time[i] = totalExecutionTime - arrival_time[i];
+            remain_time[i] = 0;
+            (*remain_process_ptr)--;
+            break;
+        }else if (flag==1 && burst_time[i] > timeQuantum){
+            remain_time[i] = remain_time[i] - timeQuantum;
+            totalExecutionTime += timeQuantum;
+            break;
+        }else if(flag==1 && burst_time[i] <= timeQuantum){
             totalExecutionTime += remain_time[i];
             waiting_Time[i] = totalExecutionTime - arrival_time[i] - burst_time[i];
             turnaround_time[i] = totalExecutionTime - arrival_time[i];
@@ -101,7 +132,7 @@ int find_initial_highest_burst_time(int number_of_process, int arrival_time[], i
       to have shorter arrival time than the first process and still gets the same results.
 */
 
-void sort_by_arrival(int number_of_process, int arrival_time[], int process[], int burst_time[], int remain_time[], int waiting_Time[] , int turnaround_time[]) {
+void sort_by_arrival(int number_of_process, int arrival_time[], int process[], int burst_time[], int remain_time[], int waiting_Time[] , int turnaround_time[], int arrival_time_copy[]) {
     int pos, j, temp;
     for (int i = 0; i < number_of_process; i++) {
         pos = i;
@@ -114,6 +145,11 @@ void sort_by_arrival(int number_of_process, int arrival_time[], int process[], i
         temp  = arrival_time[i];
         arrival_time[i] = arrival_time[pos];
         arrival_time[pos] = temp;
+
+        /* Swapping the value of the arrival time of the process. */
+        temp  = arrival_time_copy[i];
+        arrival_time_copy[i] = arrival_time_copy[pos];
+        arrival_time_copy[pos] = temp;
 
         /* Swapping the process number */
         temp = process[i];
@@ -201,8 +237,8 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
         else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process > 1) {
             timeQuantum = highest_burst_time;
             i = 0;
-        /* This condition ensures that the last process could arrive after the execution of the second last process. In example 2, P6 can arrive after time = 298 onwards after
-           P5 finished execution */
+            /* This condition ensures that the last process could arrive after the execution of the second last process. In example 2, P6 can arrive after time = 298 onwards after
+               P5 finished execution */
         } else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process == 1) {
             totalExecutionTime = arrival_time[i + 1];
         } else {
@@ -218,13 +254,13 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
 
 /*  This function calculate and print the waiting time, turn aroundtime for each process and the avg waiting and turnaround time for all processes*/
 
-void output_result(int process[], int arrival_time[], int burst_time[], int waiting_Time[], int turnaround_time[], int number_of_process) {
+void output_result(int process[], int arrival_time_copy[], int burst_time[], int waiting_Time[], int turnaround_time[], int number_of_process) {
     float avg_waiting_time = 0.0, avg_turnaround_time = 0.0;
     printf("Process\t Arrival Time\t Burst Time\t Waiting Time\t Turnaround_time\n");
     for (int i = 0; i < number_of_process; i++) {
         avg_waiting_time    += waiting_Time[i];
         avg_turnaround_time += turnaround_time[i];
-        printf("P[%d]\t\t%d\t\t%d\t\t%d\t\t%d\n", process[i], arrival_time[i], burst_time[i], waiting_Time[i], turnaround_time[i]);
+        printf("P[%d]\t\t%d\t\t%d\t\t%d\t\t%d\n", process[i], arrival_time_copy[i], burst_time[i], waiting_Time[i], turnaround_time[i]);
     }
 
     avg_waiting_time = avg_waiting_time / number_of_process;
