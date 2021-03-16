@@ -5,12 +5,12 @@
  P4 (TQ = 29.00)->  P2 (TQ = 29.00)->  P2 (TQ = 3.00)-> End of Heavy Queue
 -----End of Algorithm-----
 
-PID	Arrival Time	Burst Time	Waiting Time	Turn Around Time
-P1		0.00	15.00		10.00		10.00
-P2		0.00	32.00		71.00		25.00
-P3		0.00	10.00		0.00		45.00
-P4		0.00	26.00		45.00		71.00
-P5		0.00	20.00		25.00		103.00
+PID	Arrival Time    Burst Time  Waiting Time	Turn Around Time
+P1		    0.00    	 15.00	       10.00		       25.00
+P2		    0.00	     32.00		   71.00		      103.00
+P3		    0.00	     10.00		    0.00		       10.00
+P4		    0.00	     26.00		   45.00		       71.00
+P5		    0.00	     20.00		   25.00		       45.00
 Time Quantums Used: 15.00 5.00 29.00 3.00 
 Average Waiting Time: 30.20
 Average Turn Around Time: 50.80

@@ -46,6 +46,7 @@ void print_list(PROCESSNODE_PTR list){
 
     //Prints all values in the linkedlist
     while (current != NULL){
+        current->turn_around_time = current->waiting_time + current->burst_time;
         printf("P%d\t\t%.2f\t%.2f\t\t%.2f\t\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
         total_tat += current->turn_around_time;
         total_wt += current->waiting_time;
@@ -407,7 +408,6 @@ void round_robin(PROCESSNODE_PTR queue){
 
                 // If whole time slice not used, set burst time = 0
                 time_slice_used = current->temp_bt;
-                current->turn_around_time += time_slice_used;
                 current->temp_bt = 0;
             } else {
                 // If whole time slice is used, reduce burst time by time slice
@@ -415,7 +415,6 @@ void round_robin(PROCESSNODE_PTR queue){
                 time_slice_used = time_quantum;
             }
             if (current->temp_bt == 0){
-                current->turn_around_time = current->waiting_time + current->burst_time;
                 process_complete = 1;
             }
             //Increase waiting time of other processes
