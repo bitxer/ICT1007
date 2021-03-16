@@ -1,35 +1,16 @@
-Arrangement of processes in ready queue
-1	2	
-1	3	4	2	5	
-3	4	2	5	
-4	2	5	
-2	5	4	
-5	4	2	
-4	2	5	
-2	5	
-5	2	
-2	5	
-5	2	
-2	5	
-5	
-5	
-5	
-***** Process 1 *****
-Turnaround Time: 550
-Waiting Time: 0
-***** Process 3 *****
-Turnaround Time: 650
-Waiting Time: 450
-***** Process 4 *****
-Turnaround Time: 2350
-Waiting Time: 1550
-***** Process 2 *****
-Turnaround Time: 4650
-Waiting Time: 3050
-***** Process 5 *****
-Turnaround Time: 5350
-Waiting Time: 2750
-
-
-Average Waiting Time: 1560.0
-Average Turnaround Time: 2710.0
+==============================================================================================
+Quiet Mode: Enabled
+==============================================================================================
+Number of Processes: 5
+Time Quantum: 500
+==============================================================================================
+Process ID	Arrival Time	Burst Time	Turnaround Time	Waiting Time
+     1	              0	          550	            550		              0
+     3	            100	          200	            650		            450
+     4	            200	          800	           2350		           1550
+     2	              0	         1600	           4650		           3050
+     5	            400	         2600	           5350		           2750
+==============================================================================================
+Average Waiting Time: 1560.00
+Average Turnaround Time: 2710.00
+==============================================================================================
