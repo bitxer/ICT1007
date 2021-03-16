@@ -1,4 +1,3 @@
-Enter the no. of processes to: Enter Arrival time for P1: Enter Burst time for P1: Enter Arrival time for P2: Enter Burst time for P2: Enter Arrival time for P3: Enter Burst time for P3: Enter Arrival time for P4: Enter Burst time for P4: Enter Arrival time for P5: Enter Burst time for P5: Enter Arrival time for P6: Enter Burst time for P6: Enter Arrival time for P7: Enter Burst time for P7: Enter Arrival time for P8: Enter Burst time for P8: Enter Arrival time for P9: Enter Burst time for P9: Enter Arrival time for P10: Enter Burst time for P10: 
 -----Start of Algorithm-----
 ===== Small Queue =====
  P4 (TQ = 32.40)->  P6 (TQ = 32.40)->  P3 (TQ = 32.40)->  P1 (TQ = 32.40)->  P8 (TQ = 32.40)->  P3 (TQ = 12.93)->  P1 (TQ = 12.93)->  P8 (TQ = 12.93)->  P8 (TQ = 13.67)-> End of Small Queue
