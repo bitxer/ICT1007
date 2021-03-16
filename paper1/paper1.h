@@ -10,11 +10,8 @@
 // #define _DEBUG
 #ifdef _DEBUG
     #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
-    // #define VERBOSE(...) (fprintf)(stdout, __VA_ARGS__)
 #else
     #define DEBUG(...)
-
-    // #define VERBOSE(...) ((QUIET) == (TRUE) ? ((fprintf)(stdout, __VA_ARGS__)) : )
 #endif
 
 
