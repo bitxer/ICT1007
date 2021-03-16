@@ -1,13 +1,51 @@
 Arrangement of processes in ready queue
-0	
-0	
-0	
-0	
-0	
+1	
+1	3	2	
+1	4	5	3	2	
+4	5	3	2	1	
+5	3	2	1	4	
+3	2	1	4	5	
+2	1	4	5	3	
+1	4	5	3	2	
+4	5	3	2	1	
+5	3	2	1	4	
+3	2	1	4	5	
+2	1	4	5	3	
+1	4	5	3	2	
+4	5	3	2	
+5	3	2	4	
+3	2	4	5	
+2	4	5	3	
+4	5	3	2	
+5	3	2	
+3	2	5	
+2	5	3	
+5	3	2	
+3	2	5	
+2	5	3	
+5	3	2	
+3	2	
+2	3	
+3	2	
+2	
+2	
+2	
 ***** Process 1 *****
-Turnaround Time: 45
-Waiting Time: 0
+Turnaround Time: 125
+Waiting Time: 80
+***** Process 4 *****
+Turnaround Time: 158
+Waiting Time: 120
+***** Process 5 *****
+Turnaround Time: 218
+Waiting Time: 163
+***** Process 3 *****
+Turnaround Time: 260
+Waiting Time: 190
+***** Process 2 *****
+Turnaround Time: 293
+Waiting Time: 203
 
 
-Average Waiting Time: 0.0
-Average Turnaround Time: 9.0
+Average Waiting Time: 151.2
+Average Turnaround Time: 210.8
