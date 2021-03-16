@@ -1,0 +1,20 @@
+-----Start of Algorithm-----
+===== Small Queue =====
+ P1 (TQ = 8.00)-> End of Small Queue
+===== Heavy Queue =====
+ P2 (TQ = 10.00)-> End of Heavy Queue
+===== Small Queue =====
+ P5 (TQ = 4.00)->  P3 (TQ = 4.00)->  P3 (TQ = 1.00)-> End of Small Queue
+===== Heavy Queue =====
+ P4 (TQ = 7.00)-> End of Heavy Queue
+-----End of Algorithm-----
+
+PID	Arrival Time	Burst Time	Waiting Time	Turn Around Time
+P1		0.00	8.00		0.00		8.00
+P2		0.00	10.00		8.00		18.00
+P3		2.00	5.00		19.00		14.00
+P4		5.00	7.00		21.00		24.00
+P5		7.00	3.00		11.00		28.00
+Time Quantums Used: 8.00 10.00 4.00 1.00 7.00 
+Average Waiting Time: 11.80
+Average Turn Around Time: 18.40
