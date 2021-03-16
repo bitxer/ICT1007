@@ -36,22 +36,75 @@ void insert_process(int process_no,int burst_time, int arrival_time){
  */
 void print_list(PROCESSNODE_PTR list){
     //create a temp value for pointer
+    sort_by_pid(list);
     PROCESSNODE_PTR current = list;
 
     //intialise value for calculating average turn around time and waiting time
     float total_tat = 0;
     float total_wt = 0;
-    printf("\nno.\tat\tbt\twt\ttat\n");
+    printf("\nno.\tArrival Time\tBurst Time\tWaiting Time\tTurn Around TIme\n");
 
     //Prints all values in the linkedlist
     while (current != NULL){
-        printf("P%d\t%.2f\t%.2f\t%.2f\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
+        printf("P%d\t\t%.2f\t%.2f\t\t%.2f\t\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
         total_tat += current->turn_around_time;
         total_wt += current->waiting_time;
         current = current->next;
     }
+
+    printf("Time Quantums Used: ");
+    for (int i = 0; i < tq_counter; i++){
+        printf("%.2f ", time_quantums[i]);
+    }
+    
     //prints avrage waiting time and tunr around time
-    printf("Average Waiting Time: %.2f\nAverage Turn Around Time: %.2f\n", total_wt/no_process, total_tat/no_process);
+    printf("\nAverage Waiting Time: %.2f\nAverage Turn Around Time: %.2f\n", total_wt/no_process, total_tat/no_process);
+}
+
+
+/*
+ *  Sorts the finish head according to arrival time
+ * 
+ */
+void sort_by_pid(PROCESSNODE_PTR list){
+    //initialise values to perform bubble sort
+    PROCESSNODE_PTR current, next;
+    int temp_process_no, i, j,k;
+    float temp_burst_time, temp_arrival_time, temp_waiting_time;
+
+    k = no_process;
+
+    //Performs bubble sort on the linklist
+
+    for (i = 0; i < no_process - 1; i++,k--){
+        current = list;
+        next = current->next;
+
+        for (j = 1; j < k; j++){
+            //swap value with the current value and next value
+            if ( current->process_no > next->process_no){
+                temp_process_no = next->process_no;
+                temp_arrival_time = next->arrival_time;
+                temp_burst_time = next->burst_time;
+                temp_waiting_time = next->waiting_time;
+                
+                next->process_no = current->process_no;
+                next->arrival_time = current->arrival_time;
+                next->burst_time = current->burst_time;
+                next->temp_bt = current->burst_time;
+                next->waiting_time = current->waiting_time;
+
+                current->process_no = temp_process_no;
+                current->burst_time = temp_burst_time;
+                current->burst_time = temp_burst_time;
+                current->arrival_time = temp_arrival_time;
+                current->waiting_time = temp_waiting_time;
+            }
+            //move to next value
+            current = current->next;
+            next = next->next;
+        }
+    }
 }
 
 /*
@@ -320,11 +373,12 @@ void round_robin(PROCESSNODE_PTR queue){
     float time_slice_used = 0;
 
     int process_complete = 0;
-
     //Continue RR until all temp_bt is 0
     do{    
         //Perform round robin on the queue
         PROCESSNODE_PTR current = queue;
+
+        time_quantums[tq_counter++] = time_quantum;
         while (current != NULL){
             //To increase waiting time of processes in queue
             PROCESSNODE_PTR increase_wt = queue;

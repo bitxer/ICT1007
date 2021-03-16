@@ -21,10 +21,10 @@ void create_processes(){
 
     // Create <no_process> number of process and add it to linklist
     for (int counter = 1; counter <= no_process; counter++){
-        printf("\nEnter Burst time for P%d: ", counter);
-        scanf("%f", &temp_burst_time);                              //Get the burst time of the process
-        printf("\nEnter Arrival time for P%d: ", counter); 
+        printf("Enter Arrival time for P%d: ", counter); 
         scanf("%f", &temp_arrival_time);                            //Get the arrival time of the process
+        printf("Enter Burst time for P%d: ", counter);
+        scanf("%f", &temp_burst_time);                              //Get the burst time of the process
         insert_process(counter, temp_burst_time, temp_arrival_time);//Adds new process the queue
     }
 }
