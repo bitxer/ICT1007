@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define BUFFER 100
+
 //Data structure for ProcessNode
 struct ProcessNode{
     float burst_time;
@@ -22,6 +24,10 @@ PROCESSNODE_PTR small_task_head = NULL;
 PROCESSNODE_PTR heavy_task_head = NULL;
 PROCESSNODE_PTR finished_head = NULL;
 
+// Time quantum used
+float time_quantums[BUFFER];
+int tq_counter = 0;
+
 //Global CPU time and no of process
 int no_process = 0;
 float temp_time_taken = 0;
@@ -29,6 +35,7 @@ float temp_time_taken = 0;
 void print_list(PROCESSNODE_PTR list);
 void insert_process(int process_no,int burst_time, int arrival_time);
 void create_processes();
+void sort_by_pid(PROCESSNODE_PTR list);
 void sort_by_arrival();
 void start_process();
 void add_to_ready(PROCESSNODE_PTR node);
