@@ -21,13 +21,13 @@ extern int INTERACTIVE;
 #define FALSE 0
 
 #define VERBOSE(...) ({                 \
-    if (!(QUIET)) {            \
+    if (!(QUIET)) {                     \
         (fprintf)(stdout, __VA_ARGS__); \
     }                                   \
 })
 
-#define PROMPT(...) ({                 \
-    if (INTERACTIVE) {            \
+#define PROMPT(...) ({                  \
+    if (INTERACTIVE) {                  \
         (fprintf)(stdout, __VA_ARGS__); \
     }                                   \
 })

@@ -12,6 +12,7 @@ PROCESS_PTR term_q_tail = NULL;     // Tail pointer for Terminated process queue
 int QUIET = FALSE, INTERACTIVE = FALSE;
 
 void print_process(PROCESS_PTR process) {
+    // DEVELOPMENT CODE
     if (process == NULL) {
         DEBUG("NULL\n");
         return;
@@ -30,7 +31,6 @@ void print_process(PROCESS_PTR process) {
 
 void print_report(PROCESS_PTR head) {
     // DEVELOPMENT CODE
-    // SANITY: PRINT OUT LINKEDLIST FOR VISUALISATION
     PROCESS_PTR p_iter = head;
     DEBUG("********** Linkedlist report **********\n");
     while (p_iter != NULL) {
@@ -212,6 +212,9 @@ PROCESS_PTR check_arrival(int t_current) {
  *   q_head     - Pointer to head of queue
  */
 void print_queue(PROCESS_PTR q_head) {
+    if (QUIET) {
+        return;
+    }
     for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
         VERBOSE("%d\t", process->pid);
     }
