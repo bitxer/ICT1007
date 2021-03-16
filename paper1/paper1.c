@@ -15,7 +15,7 @@ void print_process(PROCESS_PTR process) {
         return;
     }
     int pid = process->pid;
-    DEBUG("***** Process %d [%p] *****\n", pid, process);
+    DEBUG("***** Process %d [%p] *****\n", pid + 1, process);
     DEBUG("Arrival Time for Process %d: %d\n", pid + 1, process->t_arrival);
     DEBUG("Burst Time for Process %d: %d\n", pid + 1, process->t_exec);
     DEBUG("Remaining Time required: %d\n", process->t_remain);
@@ -132,28 +132,31 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
     print_report(ready_q_head);
 
     // Declare some variables to be used in loop
-    PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
+    // PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
+    PROCESS_PTR p_prev = NULL;
     PROCESS_PTR ready_iter = ready_q_head; 
 
     // Add new process to queue using insertion sort
-    while (ready_iter != NULL && arrival_iter != NULL) {
-        if (ready_iter->t_remain > arrival_iter->t_remain) {
+    while (ready_iter != NULL && arrival_q != NULL) {
+        DEBUG("ARRIVAL QUEUE\n")
+        print_report(arrival_q);
+        if (ready_iter->t_remain > arrival_q->t_remain) {
             // If current process in ready queue have a larger remaining time than in current process in arrival queue
             // Remember next process in arrival queue
-            PROCESS_PTR temp_process = arrival_iter->next;
+            PROCESS_PTR temp_process = arrival_q->next;
             if (p_prev == NULL) {
                 // If p_prev is null, process is at start of ready_queue
                 // Add process to start of ready queue
-                arrival_iter->next = ready_q_head;
-                ready_q_head = arrival_iter;
+                arrival_q->next = ready_q_head;
+                ready_q_head = arrival_q;
             } else {
                 // If p_prev is not null, process is not at the start of ready_queue
                 // Add process to queue at correct place
-                p_prev->next = arrival_iter;
-                arrival_iter->next = ready_iter;
+                p_prev->next = arrival_q;
+                arrival_q->next = ready_iter;
             }
             // Update pointers to prepare for next loop
-            arrival_iter = temp_process;
+            arrival_q = temp_process;
             ready_iter = ready_q_head;
             p_prev = NULL;
         } else {
@@ -162,6 +165,10 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
             p_prev = ready_iter;
             ready_iter = ready_iter->next;
         }
+    }
+
+    if (arrival_q != NULL){
+        p_prev->next = ready_iter;
     }
 }
 

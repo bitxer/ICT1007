@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 // Development Functions
-// #define _DEBUG
+#define _DEBUG
 #ifdef _DEBUG
     #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
 #else
