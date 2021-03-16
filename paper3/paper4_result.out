@@ -1,0 +1,10 @@
+Enter the no. of processes to: Enter Arrival time for P1: Enter Burst time for P1: Enter Arrival time for P2: Enter Burst time for P2: Enter Arrival time for P3: Enter Burst time for P3: Enter Arrival time for P4: Enter Burst time for P4: Enter Arrival time for P5: Enter Burst time for P5: 
+no.	Arrival Time	Burst Time	Waiting Time	Turn Around TIme
+P1		0.00	45.00		0.00		45.00
+P2		5.00	90.00		203.00		68.00
+P3		8.00	70.00		130.00		118.00
+P4		15.00	38.00		30.00		200.00
+P5		20.00	55.00		63.00		293.00
+Time Quantums Used: 45.00 46.50 8.50 80.00 10.00 
+Average Waiting Time: 85.20
+Average Turn Around Time: 144.80
