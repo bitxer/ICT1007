@@ -9,7 +9,7 @@ PROCESS_PTR ready_q_head = NULL;    // Head pointer for ready queue
 PROCESS_PTR term_q_head = NULL;     // Head pointer for Terminated process queue
 PROCESS_PTR term_q_tail = NULL;     // Tail pointer for Terminated process queue
 
-int QUIET = FALSE;
+int QUIET = FALSE, INTERACTIVE = FALSE;
 
 void print_process(PROCESS_PTR process) {
     if (process == NULL) {
@@ -219,55 +219,84 @@ void print_queue(PROCESS_PTR q_head) {
 }
 
 /*
+ * Print help message for program
+ * Parameters:
+ *   exe_name   - Name used to run current instance of executable
+ */
+void print_help(char * exe_name) {
+    printf("Usage: %s [-iq] [file...]\n", exe_name);
+    printf("  -i      Run program in interactive mode\n");
+    printf("  -q      Prompts for input will be silenced and only final statistics\n");
+    printf("          will be printed\n");
+}
+
+/*
+ * Print control variables set via command line
+ */
+void print_config() {
+    printf("==============================================================================================\n");
+    DEBUG("Debug: Enabled\n");
+    switch (QUIET){
+    case TRUE:
+        printf("Quiet Mode: Enabled\n");
+        break;
+    default:
+        printf("Quiet Mode: Disabled\n");
+    }
+
+    switch (INTERACTIVE){
+    case TRUE:
+        printf("Interactive Mode: Enabled\n");
+        break;
+    default:
+        printf("Interactive Mode: Disabled\n");
+    }
+    printf("==============================================================================================\n");
+}
+
+/*
  * Main Function
  */
 int main(int argc, char * argv[]) {
-    if (argc > 2) {
-        printf("Usage: %s [OPTION]\n", argv[0]);
-        printf("  -q      Prompts for input will be silenced and only final statistics\n");
-        printf("          will be printed\n");
-        return -1;
-    } else if (argc == 2){
-        if (argv[1][0] == '-' && argv[1][1] == 'q' && argv[1][2] == '\0') {
+    char opt;
+    while ((opt = getopt(argc, argv, "iq")) != -1) {
+        switch (opt) {
+        case 'i': 
+            INTERACTIVE = TRUE;
+            break;
+        case 'q':
             QUIET = TRUE;
-        } else {
-            printf("%s: invalid option '%s'\n", argv[0], argv[1]);
-            printf("Usage: %s [OPTION]\n", argv[0]);
-            printf("  -q      Prompts for input will be silenced and only final statistics\n");
-            printf("          will be printed\n");
-            return -1;
+            break;
+        default:
+            print_help(argv[0]);
+            exit(EXIT_FAILURE);
         }
     }
-    printf("==============================================================================================\n");
-    DEBUG("Debug: Enabled\n");
-    if (QUIET) {
-        printf("Quiet Mode: Enabled\n");
-    } else {
-        printf("Quiet Mode: Disabled\n");
-        printf("==============================================================================================\n");
-    }
+
+    print_config();
+
     // Initialise variables needed for process initialisation
     int n_proc = 0, t_quantum = 0, t_current = 0;
 
     // Request user input for number of processes
-    VERBOSE("Enter number of processes: ");
+    PROMPT("Enter number of processes: ");
     scanf("%d", &n_proc);
 
     // Request for time quantum
-    VERBOSE("Enter size of the time quantum: ");
+    PROMPT("Enter size of the time quantum: ");
     scanf("%d", &t_quantum);
 
     // Initialise Process Queue
     for (int pid = 1; pid <= n_proc; pid++) {
         int t_arrival = 0, t_exec = 0;
-        VERBOSE("***** Process %d *****\n", pid);
+        PROMPT("***** Process %d *****\n", pid);
 
         // Request arrival time for each process
-        VERBOSE("Enter arrival Time for Process %d: ", pid);
+        PROMPT("Enter arrival Time for Process %d: ", pid);
         scanf("%d", &t_arrival);
 
         // Request burst time for each process
-        VERBOSE("Enter burst Time for Process %d: ", pid);
+        PROMPT("Enter burst Time for Process %d: ", pid);
         scanf("%d", &t_exec);
 
         // Add process to Process Queue
@@ -280,8 +309,8 @@ int main(int argc, char * argv[]) {
             pid--;
         }
     }
-    VERBOSE("\n");
-    printf("==============================================================================================\n");
+    PROMPT("\n");
+    PROMPT("==============================================================================================\n");
     printf("Number of Processes: %d\n", n_proc);
     printf("Time Quantum: %d\n", t_quantum);
     printf("==============================================================================================\n");
