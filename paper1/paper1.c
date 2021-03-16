@@ -16,8 +16,8 @@ void print_process(PROCESS_PTR process) {
     }
     int pid = process->pid;
     DEBUG("***** Process %d [%p] *****\n", pid, process);
-    DEBUG("Arrival Time for Process %d: %d\n", pid + 1, process->t_arrival);
-    DEBUG("Burst Time for Process %d: %d\n", pid + 1, process->t_exec);
+    DEBUG("Arrival Time for Process %d: %d\n", pid, process->t_arrival);
+    DEBUG("Burst Time for Process %d: %d\n", pid, process->t_exec);
     DEBUG("Remaining Time required: %d\n", process->t_remain);
     DEBUG("Status Flag: %d\n", process->status_flag);
     DEBUG("Turnaround time: %d\n", process->t_turn);
@@ -128,41 +128,47 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
     
     // Sort ready queue based on remaining time using bubble sort
     sort_ready_queue();
-    DEBUG("[After] Sort ready queue\n");
+    DEBUG("[INSERT READY Q AFTER] Sort ready queue\n");
     print_report(ready_q_head);
 
     // Declare some variables to be used in loop
-    PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
+    // PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
+    PROCESS_PTR p_prev = NULL;
     PROCESS_PTR ready_iter = ready_q_head; 
 
     // Add new process to queue using insertion sort
-    while (ready_iter != NULL && arrival_iter != NULL) {
-        if (ready_iter->t_remain > arrival_iter->t_remain) {
+    while (arrival_q != NULL) {
+        DEBUG("[INSERT READY Q LOOP] ARRIVAL QUEUE\n")
+        print_report(arrival_q);
+        if (ready_iter == NULL || ready_iter->t_remain > arrival_q->t_remain) {
             // If current process in ready queue have a larger remaining time than in current process in arrival queue
             // Remember next process in arrival queue
-            PROCESS_PTR temp_process = arrival_iter->next;
+            PROCESS_PTR temp_process = arrival_q->next;
             if (p_prev == NULL) {
                 // If p_prev is null, process is at start of ready_queue
                 // Add process to start of ready queue
-                arrival_iter->next = ready_q_head;
-                ready_q_head = arrival_iter;
+                arrival_q->next = ready_q_head;
+                ready_q_head = arrival_q;
             } else {
                 // If p_prev is not null, process is not at the start of ready_queue
                 // Add process to queue at correct place
-                p_prev->next = arrival_iter;
-                arrival_iter->next = ready_iter;
+                p_prev->next = arrival_q;
+                arrival_q->next = ready_iter;
             }
             // Update pointers to prepare for next loop
-            arrival_iter = temp_process;
+            arrival_q = temp_process;
             ready_iter = ready_q_head;
             p_prev = NULL;
-        } else {
+            DEBUG("[INSERT READY QUEUE] READY QUEUE\n");
+            print_report(ready_q_head);
+        } else  {
             // Pointer is not at correct position
             // Prepare pointers for next iteration
             p_prev = ready_iter;
             ready_iter = ready_iter->next;
         }
     }
+
 }
 
 /*
@@ -219,24 +225,24 @@ int main() {
     int n_proc = 0, t_quantum = 0, t_current = 0;
 
     // Request user input for number of processes
-    printf("Enter number of processes: ");
+    // printf("Enter number of processes: ");
     scanf("%d", &n_proc);
 
     // Request for time quantum
-    printf("Enter size of the time quantum: ");
+    // printf("Enter size of the time quantum: ");
     scanf("%d", &t_quantum);
 
     // Initialise Process Queue
-    for (int pid = 0; pid < n_proc; pid++) {
+    for (int pid = 1; pid <= n_proc; pid++) {
         int t_arrival = 0, t_exec = 0;
-        printf("***** Process %d *****\n", pid + 1);
+        // printf("***** Process %d *****\n", pid);
 
         // Request arrival time for each process
-        printf("Enter arrival Time for Process %d: ", pid + 1);
+        // printf("Enter arrival Time for Process %d: ", pid);
         scanf("%d", &t_arrival);
 
         // Request burst time for each process
-        printf("Enter burst Time for Process %d: ", pid + 1);
+        // printf("Enter burst Time for Process %d: ", pid);
         scanf("%d", &t_exec);
 
         // Add process to Process Queue
@@ -253,8 +259,8 @@ int main() {
     // Initialise variables for use for program execution
     int p_term = 0;
     while (process_q_head || ready_q_head) {        
-        DEBUG("**************************\n")
-        DEBUG("Time: %d\n", t_current);
+        DEBUG("[main] **************************\n")
+        DEBUG("[main] Time: %d\n", t_current);
 
         // Check if new process arrived
         PROCESS_PTR arrival_q = check_arrival(t_current);
@@ -262,11 +268,11 @@ int main() {
         if (arrival_q) {
             insert_ready_q(arrival_q);
         }
-        DEBUG("PROCESS QUEUE\n");
+        DEBUG("[main] PROCESS QUEUE\n");
         print_report(process_q_head);
-        DEBUG("READY QUEUE\n");
+        DEBUG("[main] READY QUEUE\n");
         print_report(ready_q_head);
-        DEBUG("CURRENT_PROCESS\n");
+        DEBUG("[main] CURRENT_PROCESS\n");
 
         if (!ready_q_head) {
             // if no process is in ready queue
@@ -314,8 +320,7 @@ int main() {
             // Remove process from ready queue
             ready_q_head = ready_q_head->next;
             term_q_tail->next = NULL;
-            DEBUG("----- After terminate -----\n");
-            DEBUG("Iter\n");
+            DEBUG("[main] ----- After terminate -----\n");
             print_process(ready_q_head);
         } else {
             p_term = 0;
@@ -326,11 +331,11 @@ int main() {
     // Initialise variables for use with process analysis
     float total_wait = 0.0, total_turn = 0.0;
     PROCESS_PTR p_iter = term_q_head;
-    DEBUG("Terminated queue\n");
+    DEBUG("[main] Terminated queue\n");
     print_report(term_q_head);
     while (p_iter != NULL) {
         // Print process details to screen
-        printf("***** Process %d *****\n", p_iter->pid + 1);
+        printf("***** Process %d *****\n", p_iter->pid);
         printf("Turnaround Time: %d\n", p_iter->t_turn);
         printf("Waiting Time: %d\n", p_iter->t_wait);
 
