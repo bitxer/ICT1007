@@ -4,7 +4,7 @@ Quiet Mode: Enabled
 Number of Processes: 69
 Time Quantum: 23
 ==============================================================================================
-Process ID	Arrival Time	Burst Time	Turnaround Time	Waiting Time
+Process ID	Arrival Time	Burst Time	Turnaround Time		Waiting Time
     14	             20	            2	              5		              3
      3	              4	            5	             26		             21
     20	             28	            3	              5		              2

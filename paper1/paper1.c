@@ -359,7 +359,7 @@ int main(int argc, char * argv[]) {
     }
 
     VERBOSE("==============================================================================================\n");
-    printf("Process ID\tArrival Time\tBurst Time\tTurnaround Time\tWaiting Time\n");
+    printf("Process ID\tArrival Time\tBurst Time\tTurnaround Time\t\tWaiting Time\n");
     // Initialise variables for use with process analysis
     float total_wait = 0.0, total_turn = 0.0;
     PROCESS_PTR p_iter = term_q_head;
