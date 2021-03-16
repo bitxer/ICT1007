@@ -293,6 +293,9 @@ int main(int argc, char * argv[]) {
         DEBUG("[main] Time: %d\n", t_current);
 
         // Check if new process arrived
+        if (ready_q_head == NULL) {
+            t_current = process_q_head->t_arrival;
+        }
         PROCESS_PTR arrival_q = check_arrival(t_current);
         // Insert to ready queue if new arrival is present
         if (arrival_q) {
@@ -367,9 +370,6 @@ int main(int argc, char * argv[]) {
     print_report(term_q_head);
     while (p_iter != NULL) {
         // Print process details to screen
-        // printf("***** Process %d *****\n", p_iter->pid);
-        // printf("Turnaround Time: %d\n", p_iter->t_turn);
-        // printf("Waiting Time: %d\n", p_iter->t_wait);
         printf("%6d\t%15d\t%13d\t%15d\t\t%15d\n", p_iter->pid, p_iter->t_arrival, p_iter->t_exec, p_iter->t_turn, p_iter->t_wait);
 
         // Compute total turnaround and waiting time
