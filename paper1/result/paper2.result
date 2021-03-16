@@ -1,0 +1,90 @@
+Arrangement of processes in ready queue
+0	1	2	3	4	5	6	7	8	9	
+1	2	3	4	5	6	7	8	9	0	
+2	3	4	5	6	7	8	9	0	1	
+3	4	5	6	7	8	9	0	1	2	
+4	5	6	7	8	9	0	1	2	
+5	6	7	8	9	0	1	2	4	
+6	7	8	9	0	1	2	4	5	
+7	8	9	0	1	2	4	5	6	
+8	9	0	1	2	4	5	6	7	
+9	0	1	2	4	5	6	7	8	
+0	1	2	4	5	6	7	8	9	
+1	2	4	5	6	7	8	9	0	
+2	4	5	6	7	8	9	0	1	
+4	5	6	7	8	9	0	1	2	
+5	6	7	8	9	0	1	2	4	
+6	7	8	9	0	1	2	4	5	
+7	8	9	0	1	2	4	5	6	
+8	9	0	1	2	4	5	6	7	
+9	0	1	2	4	5	6	7	8	
+0	1	2	4	5	6	7	8	9	
+1	2	4	5	6	7	8	9	0	
+2	4	5	6	7	8	9	0	1	
+4	5	6	7	8	9	0	1	2	
+5	6	7	8	9	0	1	2	4	
+6	7	8	9	0	1	2	4	
+7	8	9	0	1	2	4	6	
+8	9	0	1	2	4	6	7	
+9	0	1	2	4	6	7	8	
+0	1	2	4	6	7	8	9	
+1	2	4	6	7	8	9	0	
+2	4	6	7	8	9	0	1	
+4	6	7	8	9	0	1	
+6	7	8	9	0	1	4	
+7	8	9	0	1	4	6	
+8	9	0	1	4	6	7	
+9	0	1	4	6	7	8	
+0	1	4	6	7	8	9	
+1	4	6	7	8	9	
+4	6	7	8	9	1	
+6	7	8	9	1	4	
+7	8	9	1	4	6	
+8	9	1	4	6	7	
+9	1	4	6	7	8	
+1	4	6	7	8	9	
+4	6	7	8	9	1	
+6	7	8	9	1	4	
+7	8	9	1	4	6	
+8	9	1	4	6	
+9	1	4	6	8	
+1	4	6	8	9	
+4	6	8	9	
+6	8	9	
+8	9	6	
+9	6	
+6	
+***** Process 4 *****
+Turnaround Time: 31
+Waiting Time: 30
+***** Process 6 *****
+Turnaround Time: 226
+Waiting Time: 201
+***** Process 3 *****
+Turnaround Time: 291
+Waiting Time: 256
+***** Process 1 *****
+Turnaround Time: 343
+Waiting Time: 301
+***** Process 8 *****
+Turnaround Time: 442
+Waiting Time: 383
+***** Process 2 *****
+Turnaround Time: 470
+Waiting Time: 402
+***** Process 5 *****
+Turnaround Time: 480
+Waiting Time: 410
+***** Process 9 *****
+Turnaround Time: 493
+Waiting Time: 430
+***** Process 10 *****
+Turnaround Time: 498
+Waiting Time: 433
+***** Process 7 *****
+Turnaround Time: 507
+Waiting Time: 428
+
+
+Average Waiting Time: 327.4
+Average Turnaround Time: 378.1
