@@ -159,6 +159,8 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
             arrival_q = temp_process;
             ready_iter = ready_q_head;
             p_prev = NULL;
+            DEBUG("[INSERT READY QUEUE] READY QUEUE\n");
+            print_report(ready_q_head);
         } else {
             // Pointer is not at correct position
             // Prepare pointers for next iteration
@@ -168,7 +170,7 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
     }
 
     if (arrival_q != NULL){
-        p_prev->next = ready_iter;
+        p_prev->next = arrival_q;
     }
 }
 
@@ -226,24 +228,24 @@ int main() {
     int n_proc = 0, t_quantum = 0, t_current = 0;
 
     // Request user input for number of processes
-    printf("Enter number of processes: ");
+    // printf("Enter number of processes: ");
     scanf("%d", &n_proc);
 
     // Request for time quantum
-    printf("Enter size of the time quantum: ");
+    // printf("Enter size of the time quantum: ");
     scanf("%d", &t_quantum);
 
     // Initialise Process Queue
     for (int pid = 0; pid < n_proc; pid++) {
         int t_arrival = 0, t_exec = 0;
-        printf("***** Process %d *****\n", pid + 1);
+        // printf("***** Process %d *****\n", pid + 1);
 
         // Request arrival time for each process
-        printf("Enter arrival Time for Process %d: ", pid + 1);
+        // printf("Enter arrival Time for Process %d: ", pid + 1);
         scanf("%d", &t_arrival);
 
         // Request burst time for each process
-        printf("Enter burst Time for Process %d: ", pid + 1);
+        // printf("Enter burst Time for Process %d: ", pid + 1);
         scanf("%d", &t_exec);
 
         // Add process to Process Queue
