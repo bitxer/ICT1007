@@ -305,11 +305,10 @@ int main(int argc, char * argv[]) {
         // Ensures that process is added successfully
         // Prints error message if error occurs
         if (result == UNEXPECTED_ARR_TIME) {
-            printf("Invalid Arrival Time supplied\n");
+            printf("Invalid Arrival Time supplied for process %d\n", pid);
             pid--;
         }
     }
-    PROMPT("\n");
     PROMPT("==============================================================================================\n");
     printf("Number of Processes: %d\n", n_proc);
     printf("Time Quantum: %d\n", t_quantum);
