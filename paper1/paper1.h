@@ -4,13 +4,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 // Development Functions
 // #define _DEBUG
 #ifdef _DEBUG
     #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
+    // #define VERBOSE(...) (fprintf)(stdout, __VA_ARGS__)
 #else
     #define DEBUG(...)
+
+    // #define VERBOSE(...) ((QUIET) == (TRUE) ? ((fprintf)(stdout, __VA_ARGS__)) : )
 #endif
+
+
+extern int QUIET;
+#define TRUE 1
+#define FALSE 0
+
+#define VERBOSE(...) ({                 \
+    if (!(QUIET)) {            \
+        (fprintf)(stdout, __VA_ARGS__); \
+    }                                   \
+})
 
 // Return codes for insert_process_q()
 #define SUCCESS 0
