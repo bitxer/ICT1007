@@ -1,0 +1,22 @@
+Enter the no. of processes to: Enter Arrival time for P1: Enter Burst time for P1: Enter Arrival time for P2: Enter Burst time for P2: Enter Arrival time for P3: Enter Burst time for P3: Enter Arrival time for P4: Enter Burst time for P4: Enter Arrival time for P5: Enter Burst time for P5: Enter Arrival time for P6: Enter Burst time for P6: Enter Arrival time for P7: Enter Burst time for P7: Enter Arrival time for P8: Enter Burst time for P8: Enter Arrival time for P9: Enter Burst time for P9: Enter Arrival time for P10: Enter Burst time for P10: 
+-----Start of Algorithm-----
+===== Small Queue =====
+ P4 (TQ = 32.40)->  P6 (TQ = 32.40)->  P3 (TQ = 32.40)->  P1 (TQ = 32.40)->  P8 (TQ = 32.40)->  P3 (TQ = 12.93)->  P1 (TQ = 12.93)->  P8 (TQ = 12.93)->  P8 (TQ = 13.67)-> End of Small Queue
+===== Heavy Queue =====
+ P9 (TQ = 69.00)->  P10 (TQ = 69.00)->  P2 (TQ = 69.00)->  P5 (TQ = 69.00)->  P7 (TQ = 69.00)->  P5 (TQ = 5.50)->  P7 (TQ = 5.50)->  P7 (TQ = 4.50)-> End of Heavy Queue
+-----End of Algorithm-----
+
+PID	Arrival Time	Burst Time	Waiting Time	Turn Around Time
+P1		0.00	42.00		93.40		1.00
+P2		0.00	68.00		290.00		26.00
+P3		0.00	35.00		90.80		125.80
+P4		0.00	1.00		0.00		135.40
+P5		0.00	70.00		427.00		162.00
+P6		0.00	25.00		1.00		225.00
+P7		0.00	79.00		428.00		290.00
+P8		0.00	59.00		103.00		358.00
+P9		0.00	63.00		162.00		497.00
+P10		0.00	65.00		225.00		507.00
+Time Quantums Used: 32.40 12.93 13.67 69.00 5.50 4.50 
+Average Waiting Time: 182.02
+Average Turn Around Time: 232.72
