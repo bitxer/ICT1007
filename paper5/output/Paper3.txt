@@ -1,0 +1,13 @@
+0 (8)| 1 (16)| 2 (24)| 3 (32)| 4 (40)| 0 (47)| 1 (55)| 2 (57)| 3 (65)| 4 (73)| 1 (81)| 3 (89)| 4 (93)| 1 (101)| 3 (103)| 
+
+Process No.          Burst Time           Waiting Time         Turn Around Time    
+0                    15                   32                   47                  
+1                    32                   69                   101                 
+2                    10                   47                   57                  
+3                    26                   77                   103                 
+4                    20                   73                   93                  
+
+Average Waiting Time: 59.5999984741211
+Average Turnaround Time: 80.1999969482422
+Number of context switches: 14
+Idle CPU Time: 0

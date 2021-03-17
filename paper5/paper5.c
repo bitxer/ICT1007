@@ -34,16 +34,19 @@ int main() {
     int number_of_processes,quantum_high, quantum_med, quantum_low,
 
     //Burst Time, Arrival Time, Priority and Flag per process
-    burst_time[20], arrival_time[20], priority[20], flag[20],
+    burst_time[100], arrival_time[100], priority[100], flag[100],
 
     //Backup Data
-    original_burst_time[20],
+    original_burst_time[100],
 
     //Calculated values
-    waiting_time[20], turnaround_time[20], average_waiting_time = 0, average_turnaround_time = 0,
+    waiting_time[100], turnaround_time[100],
 
     //Quantum for each process
-    quantum_array[20];
+    quantum_array[100];
+
+    //Calculated values
+    float  average_waiting_time = 0, average_turnaround_time = 0;
 
     //System Counter is the amount of time since the start
     int system_counter = 0,
@@ -78,6 +81,7 @@ int main() {
     printf("Quantum:");
     scanf("%d", &quantum_med);
 
+    /*
     for (int i=0; i < number_of_processes; i++)
     {
         printf("Process %d burst time:", i);
@@ -90,6 +94,25 @@ int main() {
         printf("Process %d arrival time:", i);
         scanf("%d", &arrival_time[i]);
     }
+     */
+    printf("Process burst time:");
+    for (int i=0; i<number_of_processes; i++)
+    {
+        scanf("%d", &burst_time[i]);
+        original_burst_time[i] = burst_time[i];
+    }
+    printf("Process priority:");
+    for (int i=0; i<number_of_processes; i++)
+    {
+        scanf("%d", &priority[i]);
+    }
+    printf("Process arrival time:");
+    for (int i=0; i<number_of_processes; i++)
+    {
+
+        scanf("%d", &arrival_time[i]);
+    }
+
 
     int threshold = quantum_med * 0.20; //Arbitrary threshold
 
@@ -110,7 +133,7 @@ int main() {
             {
                 head = newNode;
             }
-            //Check if head is already bigger
+                //Check if head is already bigger
             else if (head->data > newNode->data)
             {
                 newNode->next = head;
@@ -138,7 +161,7 @@ int main() {
     }
 
     //Set all flags to False by default
-    for (int i=0; i < 20; i++)
+    for (int i=0; i < 100; i++)
     {
         flag[i] = 0; //FALSE
     }
@@ -151,14 +174,19 @@ int main() {
         {
             break;
         }
+
         int current_index = temp->index;
-        system_counter += temp->data;
-        waiting_time[current_index] = system_counter - temp->data;
-        turnaround_time[current_index] = system_counter - arrival_time[current_index];
-        flag[current_index] = 1;
-        printf("%d (%d)| ", current_index, system_counter);
+        if (system_counter > arrival_time[current_index])
+        {
+            system_counter += temp->data;
+            waiting_time[current_index] = system_counter - temp->data;
+            turnaround_time[current_index] = system_counter - arrival_time[current_index];
+            flag[current_index] = 1;
+            printf("%d (%d)| ", current_index, system_counter);
+            context_switches += 1;
+        }
         temp = temp->next;
-        context_switches += 1;
+
     }
 
 
@@ -173,9 +201,9 @@ int main() {
 
     //Begin improved Round-Robin
     int current_system_counter = -1;
+    int last_processed_index = -1;
     //Check for if we even did any work this time by comparing before-and-after processing
     //If processes are processed, system counter will have changed but not current system counter
-    //while (current_system_counter != system_counter)
     while (completed == 0)
     {
         current_system_counter = system_counter;
@@ -202,8 +230,8 @@ int main() {
                 turnaround_time[i] = system_counter - arrival_time[i];
                 flag[i] = 1;
             }
-            //Context-saving Mechanic
-            //Check if eligible for fast-finish
+                //Context-saving Mechanic
+                //Check if eligible for fast-finish
             else if (check_for_possible_finish(burst_time[i], quantum_array[priority[i]], priority[i]) == 1)
             {
                 system_counter += burst_time[i];
@@ -212,15 +240,20 @@ int main() {
                 turnaround_time[i] = system_counter - arrival_time[i];
                 flag[i] = 1;
             }
-            //Do it the old-fashioned way
+                //Do it the old-fashioned way
             else
             {
                 system_counter += quantum_array[priority[i]];
                 burst_time[i] -= quantum_array[priority[i]];
             }
             printf("%d (%d)| ", i, system_counter);
-            //We're done with this process, we switch NOW (unless its the same process of course) *Potentially Inaccurate*
-            context_switches += 1;
+
+            //We're done with this process, we switch NOW (unless its the same process of course)
+            if (last_processed_index != i)
+            {
+                context_switches += 1;
+            }
+            last_processed_index = i;
         }
         if (current_system_counter == system_counter)
         {
@@ -233,8 +266,8 @@ int main() {
                     //Signify that the scheduler isnt done yet
                     completed = 0;
                     //Increase system counter by 10 to signify idle time
-                    system_counter += 10;
-                    idle_time += 10;
+                    system_counter += 1;
+                    idle_time += 1;
                     break;
                 }
             }
@@ -258,19 +291,18 @@ int main() {
 
     //Print out the burst time, waiting time and turn around time of each process
     printf("\n");
-    printf("\n%-20s %-20s %-20s", "Burst Time", "Waiting Time", "Turn Around Time");
+    printf("\n%-20s %-20s %-20s %-20s", "Process No.", "Burst Time", "Waiting Time", "Turn Around Time");
     for (int i=0; i < number_of_processes; i++)
     {
-        printf("\n%-20d %-20d %-20d", original_burst_time[i], waiting_time[i], turnaround_time[i]);
+        printf("\n%-20d %-20d %-20d %-20d", i, original_burst_time[i], waiting_time[i], turnaround_time[i]);
     }
 
     //Print AWT,ATT
     printf("\n\n");
-    printf("Average Waiting Time: %d\n", average_waiting_time);
-    printf("Average Turnaround Time: %d\n", average_turnaround_time);
+    printf("Average Waiting Time: %.13f\n", average_waiting_time);
+    printf("Average Turnaround Time: %.13f\n", average_turnaround_time);
     printf("Number of context switches: %d\n", context_switches);
     printf("Idle CPU Time: %d", idle_time);
-
 
     return 0;
 }
