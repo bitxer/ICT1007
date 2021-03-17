@@ -184,6 +184,58 @@ void sort_by_arrival(int number_of_process, int arrival_time[], int process[], i
 }
 
 
+/*    Swapping of processes via selection sort where it will sort processes via shortest turnaround time.
+      This is for the purpose of displaying the gantt chart.
+      The flag is needed to determine the idle process that execute after all the processes has executed and
+      not sort the idle process as it will always be kept at the end of the queue.
+*/
+
+
+void sort_by_turnaround(int number_of_process, int process[], int burst_time[], int waiting_Time[] , int turnaround_time[], int arrival_time_copy[],int flag) {
+    int pos, j, temp;
+    for (int i = 0; i < number_of_process; i++) {
+        pos = i;
+        for (j = i + 1; j < number_of_process; j++) {
+            if(j==flag){
+                continue;
+            }else if (turnaround_time[j] < turnaround_time[pos]) { //loop through all the process to see which one is the shortest
+                pos = j;
+            }
+        }
+
+        /* Swapping the value of the arrival time of the process. */
+        temp  = arrival_time_copy[i];
+        arrival_time_copy[i] = arrival_time_copy[pos];
+        arrival_time_copy[pos] = temp;
+
+        /* Swapping the process number */
+        temp = process[i];
+        process[i] = process[pos];
+        process[pos] = temp;
+
+
+        /* Swapping the value of the burst time of the process. */
+        temp = burst_time[i];
+        burst_time[i] = burst_time[pos];
+        burst_time[pos] = temp;
+
+
+        /* Swapping the value of the waiting time of the process. */
+        temp = waiting_Time[i];
+        waiting_Time[i] = waiting_Time[pos];
+        waiting_Time[pos] = temp;
+
+        /* Swapping the value of the turnaround time of the process. */
+        temp = turnaround_time[i];
+        turnaround_time[i] = turnaround_time[pos];
+        turnaround_time[pos] = temp;
+
+
+    }
+
+}
+
+
 /*      This function assigns the CPU to all the processes in ready queue with burst time less than the time quantum while larger ones are kept hold on.
         If burst time is less than time quantum and more than 0, it will assign CPU to the process. the total execution time will be added to the burst time,
         the burst time of the process will be set to 0 and the number of remaining process will decrement by one which shows that the process has finished execution.
@@ -194,7 +246,7 @@ void sort_by_arrival(int number_of_process, int arrival_time[], int process[], i
 
 */
 
-void dynamic_round_robin_function(int remain_process, int remain_time[], int timeQuantum, int arrival_time[], int burst_time[], int highest_burst_time, int totalExecutionTime, int waiting_Time[], int turnaround_time[], int number_of_process) {
+void dynamic_round_robin_function(int remain_process, int remain_time[], int timeQuantum, int arrival_time[], int burst_time[], int highest_burst_time, int totalExecutionTime, int waiting_Time[], int turnaround_time[], int number_of_process, int *flag_ptr) {
     for (int i = 0; remain_process != 0;) {
         for (int k = 0; k < number_of_process; k++) {
             if (arrival_time[k] <= totalExecutionTime) {
@@ -240,6 +292,7 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
             /* This condition ensures that the last process could arrive after the execution of the second last process. In example 2, P6 can arrive after time = 298 onwards after
                P5 finished execution */
         } else if ((totalExecutionTime >= arrival_time[i + 1]) || remain_process == 1) {
+            *flag_ptr = i+1;
             totalExecutionTime = arrival_time[i + 1];
         } else {
             i = 0;
@@ -252,19 +305,31 @@ void dynamic_round_robin_function(int remain_process, int remain_time[], int tim
 
 
 
-/*  This function calculate and print the waiting time, turn aroundtime for each process and the avg waiting and turnaround time for all processes*/
+/*  This function calculate and print the waiting time, turn aroundtime for each process and the avg waiting and turnaround time for all processes
+    It will print out a simple gantt chart which shows the order of the execution of the processes running by sorting the total respective turnaround time.
+*/
 
-void output_result(int process[], int arrival_time_copy[], int burst_time[], int waiting_Time[], int turnaround_time[], int number_of_process) {
+void output_result(int process[], int arrival_time_copy[], int burst_time[], int waiting_Time[], int turnaround_time[], int number_of_process, int flag) {
     float avg_waiting_time = 0.0, avg_turnaround_time = 0.0;
-    printf("Process\t Arrival Time\t Burst Time\t Waiting Time\t Turnaround_time\n");
+    printf("\nProcess\t Arrival Time\t Burst Time\t Waiting Time\t Turnaround_time\n");
     for (int i = 0; i < number_of_process; i++) {
         avg_waiting_time    += waiting_Time[i];
         avg_turnaround_time += turnaround_time[i];
         printf("P[%d]\t\t%d\t\t%d\t\t%d\t\t%d\n", process[i], arrival_time_copy[i], burst_time[i], waiting_Time[i], turnaround_time[i]);
     }
 
+
     avg_waiting_time = avg_waiting_time / number_of_process;
     avg_turnaround_time = avg_turnaround_time / number_of_process;
+    sort_by_turnaround(number_of_process, process, burst_time, waiting_Time, turnaround_time, arrival_time_copy,flag);
+    printf("\nProcess order: ");
+    for (int i = 0; i < number_of_process; i++) {
+        if(i+1== number_of_process){
+            printf("%d", process[i]);
+        }else{
+            printf("%d -> ", process[i]);
+        }
+    }
     printf("\n\nAverage Waiting Time:\t%.1f", avg_waiting_time);
     printf("\nAvg Turnaround Time:\t%.1f", avg_turnaround_time);
 
