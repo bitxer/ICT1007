@@ -53,11 +53,12 @@ int main() {
     /* Execute the dynamic_round_robin_function for the remaining process 
        The timeQuantum will change dynamically in the function below in accordance to the arrival time of the process and its burst time. 
     */
+    flag = 0;
 
-    dynamic_round_robin_function(remain_process, remain_time, timeQuantum, arrival_time, burst_time, highest_burst_time, totalExecutionTime, waiting_Time, turnaround_time, number_of_process);
+    dynamic_round_robin_function(remain_process, remain_time, timeQuantum, arrival_time, burst_time, highest_burst_time, totalExecutionTime, waiting_Time, turnaround_time, number_of_process,flag_ptr);
 
     /* Print out the result of the process arrival time, burst time, waiting time, turnaround time, avg waiting time and turnaround time.,*/
-    output_result(process, arrival_time_copy, burst_time, waiting_Time, turnaround_time, number_of_process);
+    output_result(process, arrival_time_copy, burst_time, waiting_Time, turnaround_time, number_of_process,flag);
     return 0;
 
 }
