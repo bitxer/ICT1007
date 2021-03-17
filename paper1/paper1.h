@@ -3,6 +3,8 @@
 // Global Imports
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 
 // Development Functions
 // #define _DEBUG
@@ -11,6 +13,24 @@
 #else
     #define DEBUG(...)
 #endif
+
+
+extern int QUIET;
+extern int INTERACTIVE;
+#define TRUE 1
+#define FALSE 0
+
+#define VERBOSE(...) ({                 \
+    if (!(QUIET)) {                     \
+        (fprintf)(stdout, __VA_ARGS__); \
+    }                                   \
+})
+
+#define PROMPT(...) ({                  \
+    if (INTERACTIVE) {                  \
+        (fprintf)(stdout, __VA_ARGS__); \
+    }                                   \
+})
 
 // Return codes for insert_process_q()
 #define SUCCESS 0

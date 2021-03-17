@@ -9,7 +9,10 @@ PROCESS_PTR ready_q_head = NULL;    // Head pointer for ready queue
 PROCESS_PTR term_q_head = NULL;     // Head pointer for Terminated process queue
 PROCESS_PTR term_q_tail = NULL;     // Tail pointer for Terminated process queue
 
+int QUIET = FALSE, INTERACTIVE = FALSE;
+
 void print_process(PROCESS_PTR process) {
+    // DEVELOPMENT CODE
     if (process == NULL) {
         DEBUG("NULL\n");
         return;
@@ -28,7 +31,6 @@ void print_process(PROCESS_PTR process) {
 
 void print_report(PROCESS_PTR head) {
     // DEVELOPMENT CODE
-    // SANITY: PRINT OUT LINKEDLIST FOR VISUALISATION
     PROCESS_PTR p_iter = head;
     DEBUG("********** Linkedlist report **********\n");
     while (p_iter != NULL) {
@@ -210,39 +212,94 @@ PROCESS_PTR check_arrival(int t_current) {
  *   q_head     - Pointer to head of queue
  */
 void print_queue(PROCESS_PTR q_head) {
-    for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
-        printf("%d\t", process->pid);
+    if (QUIET) {
+        return;
     }
-    printf("\n");
+    for (PROCESS_PTR process = q_head; process != NULL; process = process->next) {
+        VERBOSE("%d\t", process->pid);
+    }
+    VERBOSE("\n");
+}
+
+/*
+ * Print help message for program
+ * Parameters:
+ *   exe_name   - Name used to run current instance of executable
+ */
+void print_help(char * exe_name) {
+    printf("Usage: %s [-iq] [file...]\n", exe_name);
+    printf("  -i      Run program in interactive mode\n");
+    printf("  -q      Prompts for input will be silenced and only final statistics\n");
+    printf("          will be printed\n");
+}
+
+/*
+ * Print control variables set via command line
+ */
+void print_config() {
+    printf("==============================================================================================\n");
+    DEBUG("Debug: Enabled\n");
+    switch (QUIET){
+    case TRUE:
+        printf("Quiet Mode: Enabled\n");
+        break;
+    default:
+        printf("Quiet Mode: Disabled\n");
+    }
+
+    switch (INTERACTIVE){
+    case TRUE:
+        printf("Interactive Mode: Enabled\n");
+        break;
+    default:
+        printf("Interactive Mode: Disabled\n");
+    }
+    printf("==============================================================================================\n");
 }
 
 /*
  * Main Function
  */
-int main() {
-    DEBUG("Debug: Enabled\n");
+int main(int argc, char * argv[]) {
+    char opt;
+    while ((opt = getopt(argc, argv, "iq")) != -1) {
+        switch (opt) {
+        case 'i': 
+            INTERACTIVE = TRUE;
+            break;
+        case 'q':
+            QUIET = TRUE;
+            break;
+        default:
+            print_help(argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    print_config();
+
     // Initialise variables needed for process initialisation
     int n_proc = 0, t_quantum = 0, t_current = 0;
 
     // Request user input for number of processes
-    // printf("Enter number of processes: ");
+    PROMPT("Enter number of processes: ");
     scanf("%d", &n_proc);
 
     // Request for time quantum
-    // printf("Enter size of the time quantum: ");
+    PROMPT("Enter size of the time quantum: ");
     scanf("%d", &t_quantum);
 
     // Initialise Process Queue
     for (int pid = 1; pid <= n_proc; pid++) {
         int t_arrival = 0, t_exec = 0;
-        // printf("***** Process %d *****\n", pid);
+        PROMPT("***** Process %d *****\n", pid);
 
         // Request arrival time for each process
-        // printf("Enter arrival Time for Process %d: ", pid);
+        PROMPT("Enter arrival Time for Process %d: ", pid);
         scanf("%d", &t_arrival);
 
         // Request burst time for each process
-        // printf("Enter burst Time for Process %d: ", pid);
+        PROMPT("Enter burst Time for Process %d: ", pid);
         scanf("%d", &t_exec);
 
         // Add process to Process Queue
@@ -251,11 +308,15 @@ int main() {
         // Ensures that process is added successfully
         // Prints error message if error occurs
         if (result == UNEXPECTED_ARR_TIME) {
-            printf("Invalid Arrival Time supplied\n");
+            printf("Invalid Arrival Time supplied for process %d\n", pid);
             pid--;
         }
     }
-    printf("Arrangement of processes in ready queue\n");
+    PROMPT("==============================================================================================\n");
+    printf("Number of Processes: %d\n", n_proc);
+    printf("Time Quantum: %d\n", t_quantum);
+    printf("==============================================================================================\n");
+    VERBOSE("Arrangement of processes in ready queue\n");
     // Initialise variables for use for program execution
     int p_term = 0;
     while (process_q_head || ready_q_head) {        
@@ -263,6 +324,9 @@ int main() {
         DEBUG("[main] Time: %d\n", t_current);
 
         // Check if new process arrived
+        if (ready_q_head == NULL) {
+            t_current = process_q_head->t_arrival;
+        }
         PROCESS_PTR arrival_q = check_arrival(t_current);
         // Insert to ready queue if new arrival is present
         if (arrival_q) {
@@ -328,6 +392,8 @@ int main() {
         DEBUG("\n\n\n");
     }
 
+    VERBOSE("==============================================================================================\n");
+    printf("Process ID\tArrival Time\tBurst Time\tTurnaround Time\t\tWaiting Time\n");
     // Initialise variables for use with process analysis
     float total_wait = 0.0, total_turn = 0.0;
     PROCESS_PTR p_iter = term_q_head;
@@ -335,9 +401,7 @@ int main() {
     print_report(term_q_head);
     while (p_iter != NULL) {
         // Print process details to screen
-        printf("***** Process %d *****\n", p_iter->pid);
-        printf("Turnaround Time: %d\n", p_iter->t_turn);
-        printf("Waiting Time: %d\n", p_iter->t_wait);
+        printf("%6d\t%15d\t%13d\t%15d\t\t%15d\n", p_iter->pid, p_iter->t_arrival, p_iter->t_exec, p_iter->t_turn, p_iter->t_wait);
 
         // Compute total turnaround and waiting time
         total_turn += p_iter->t_turn;
@@ -346,8 +410,8 @@ int main() {
         // Prepare pointer for next loop
         p_iter = p_iter->next;
     }
-
-    printf("\n\n");
-    printf("Average Waiting Time: %.1f\n", total_wait / n_proc);
-    printf("Average Turnaround Time: %.1f\n", total_turn / n_proc);
+    printf("==============================================================================================\n");
+    printf("Average Waiting Time: %.2f\n", total_wait / n_proc);
+    printf("Average Turnaround Time: %.2f\n", total_turn / n_proc);
+    printf("==============================================================================================\n");
 }
