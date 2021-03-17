@@ -30,6 +30,7 @@
 
 # Executables
 *.exe
+*.out
 *.app
 *.i*86
 *.x86_64
@@ -44,6 +45,7 @@
 # Kernel Module Compile Results
 *.mod*
 *.cmd
+*.out
 .tmp_versions/
 modules.order
 Module.symvers
@@ -51,3 +53,5 @@ Mkfile.old
 dkms.conf
 .vscode
 paper2/.vscode
+paper2/algo
+paper2/sjf
