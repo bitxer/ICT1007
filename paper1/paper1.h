@@ -8,11 +8,11 @@
 
 // Development Functions
 // #define _DEBUG
-#ifdef _DEBUG
-    #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
-#else
-    #define DEBUG(...)
-#endif
+// #ifdef _DEBUG
+//     #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
+// #else
+//     #define DEBUG(...)
+// #endif
 
 
 extern int QUIET;
