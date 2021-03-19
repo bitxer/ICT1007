@@ -47,7 +47,7 @@ void print_list(PROCESSNODE_PTR list){
     //Prints all values in the linkedlist
     while (current != NULL){
         current->turn_around_time = current->waiting_time + current->burst_time;
-        printf("P%d\t\t%.2f\t%.2f\t\t%.2f\t\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
+        printf("P%d\t\t%.2f\t%.2f\t\t%.2f\t\t\t%.2f\n", current->process_no, current->arrival_time,current->burst_time, current->waiting_time, current->turn_around_time);
         total_tat += current->turn_around_time;
         total_wt += current->waiting_time;
         current = current->next;
@@ -181,9 +181,9 @@ void start_process(){
         } else {        //enter this block if ready queue is created succesfully
             sort_by_burst();
             split_to_small_heavy();
-            printf("===== Small Queue =====\n");
+            printf("===== Light Queue =====\n");
             round_robin(small_task_head);
-            printf("End of Small Queue\n");
+            printf("End of Light Queue\n");
             set_waiting_time(heavy_task_head);
 
             //Check if heavy queue exist to perform round robin
