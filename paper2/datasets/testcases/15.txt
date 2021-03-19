@@ -1,0 +1,7 @@
+;pid, burst time, arrival time, priority
+1,	2,	1,	2
+2,	3,	1,	2
+3,	4,	9,	2
+4,	5,	10,	2
+5,	6,	11,	2
+; There are periods of time where there are no processes to process

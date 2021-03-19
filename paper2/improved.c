@@ -1,17 +1,15 @@
 #include "algo.h"
 #include "getopt.h"
 
-/*  
-    sortedInsert
-    inserts a process (node) into the process list
-    increasing order of either (1) BURST_TIME, (2) ARRIVAL_TIME or (0) APPEND
-    APPEND just adds the process to the end of the list
-    PARAMETERS
-    head: head of the linked list to add the process to
-    node: node of process to add into
-    sortBy: (1) BURST_TIME, (2) ARRIVAL_TIME or (0) APPEND
-    protectedProcess: a running process to prevent the process being added in from taking over the running process's place
-*/
+// sortedInsert
+// inserts a process (node) into the process list
+// increasing order of either (1) BURST_TIME, (2) ARRIVAL_TIME or (0) APPEND
+// APPEND just adds the process to the end of the list
+// PARAMETERS
+// head: head of the linked list to add the process to
+// node: node of process to add into
+// sortBy: (1) BURST_TIME, (2) ARRIVAL_TIME or (0) APPEND
+// protectedProcess: a running process to prevent the process being added in from taking over the running process's place
 void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList* protectedProcess) {
     if (*head == NULL) {
         *head = node;
@@ -49,10 +47,9 @@ void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList
 
     // checks if the node's field is less than or equal
     if (node_field <= current_field) {
-        /* if the current process is protected, add the process fater
-         otherwise, take over
-         kinda non-preemptive if you think about it
-        */
+        // if the current process is protected, add the process fater
+        // otherwise, take over
+        // kinda non-preemptive if you think about it
         if (current != protectedProcess) {
             node->next = current;
             *head = node;
@@ -67,10 +64,9 @@ void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList
     }
 
     while (current != NULL) {
-        /* check if the in the given node's field (to insert into the list) 
-         is bigger than the current node's field
-         AND the current field is less than the next fiel OR if there is no next
-        */
+        // check if the in the given node's field (to insert into the list) 
+        // is bigger than the current node's field
+        // AND the current field is less than the next fiel OR if there is no next
         if (node_field > current_field && (current->next == NULL || node_field <= next_field)) {
             if (current->next == NULL) {
                 current->next = node;
@@ -98,11 +94,9 @@ void sortedInsert(ProcessList** head, ProcessList* node, int sortBy, ProcessList
     }
 }
 
-/*  
-    createProcess
-    creates a process structure with the given fields
-    i think the fields are quite self-explanatory... right?
-*/
+// createProcess
+// creates a process structure with the given fields
+// i think the fields are quite self-explanatory... right?
 ProcessList* createProcess(int process_id, int burst_time, int arrival_time, int waiting_time, int turnaround_time) {
     ProcessList* newProc = malloc(sizeof(ProcessList));
     newProc->process_id = process_id;
@@ -115,11 +109,9 @@ ProcessList* createProcess(int process_id, int burst_time, int arrival_time, int
     return newProc;
 }
 
-/*  
-    copyProcess
-    copies a process's information excluding the next node so that no funky things will happen
-    also calls createProcess so kinda a wrapper in a sense
-*/
+// copyProcess
+// copies a process's information excluding the next node so that no funky things will happen
+// also calls createProcess so kinda a wrapper in a sense
 ProcessList* copyProcess(ProcessList* source) {
     int process_id = source->process_id;
     int arrival_time = source->arrival_time;
@@ -130,46 +122,25 @@ ProcessList* copyProcess(ProcessList* source) {
     return createProcess(process_id, burst_time, arrival_time, waiting_time, turnaround_time);
 }
 
-/*  
-    printProcessList
-    just a simple loop to print out all the process IDs in order within a given list
-*/
+// printProcessList
+// just a simple loop to print out all the process IDs in order within a given list
 void printProcessList(ProcessList*  n) {
-    int counter = 0;
-    int firstline = 0;
     while (n != NULL) {
         if (n->next == NULL) {
             printf("P%d\n", n->process_id);
         } else {
             printf("P%d -> ", n->process_id);
-            if (firstline == 0) {
-                if (counter == 11) {
-                    printf("\n");
-                    counter = 0;
-                    firstline = 1;
-                }
-            } else {
-                if (counter == 14) {
-                    printf("\n");
-                    counter = 0;
-                }
-            }
-            
-
-            counter++;
         }
         n = n->next;
     }
 }
 
-/*  
-    checkArrivals
-    checks if, at the current time, a process is expected to arrive
-    the incoming process will then be added to the ready queue according to burst time
-    Pop the inserted process and check if next process has the same time
-    Otherwise break
-    takes in a protectedProcess in order to pass it to the sortedInsert function to prevent funky things
-*/
+// checkArrivals
+// checks if, at the current time, a process is expected to arrive
+// the incoming process will then be added to the ready queue according to burst time
+// Pop the inserted process and check if next process has the same time
+// Otherwise break
+// takes in a protectedProcess in order to pass it to the sortedInsert function to prevent funky things
 void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, int*time, ProcessList* protectedProcess) {
     for (;;) {
         if ((*incoming_arrivals) == NULL) {
@@ -177,9 +148,8 @@ void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, i
         }
 
         if ((*incoming_arrivals)->arrival_time <= *time) {
-            /* create a copy of the new process and insert into the ready queue
-             have to create a copy if not the linked list will follow
-            */
+            // create a copy of the new process and insert into the ready queue
+            // have to create a copy if not the linked list will follow
             if (DEBUG_MODE)
                 printf("Inserting PID %d into the ready queue\n", (*incoming_arrivals)->process_id);
 
@@ -195,13 +165,23 @@ void checkArrivals(ProcessList** ready_queue, ProcessList** incoming_arrivals, i
     }
 }
 
-/*
-    runProcesses
-    runs the algorithm stated by Paper 2
-    returns the resulting list of processes in the run order
-*/
+void getLastProcess(ProcessList* ready_queue, ProcessList* protectedProcess) {
+    ProcessList* proc = NULL;
+    while (ready_queue->next != NULL) {
+        proc = ready_queue;
+    }
+
+    
+}
+
+// runProcesses
+// runs the algorithm stated by Paper 2
+// returns the resulting list of processes in the run order
 ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arrivals, int* time, int* k_factor, int* total_num_of_processes) {
     int num_of_processes = 0;
+    int decay_factor = 1;
+    int decay_init_time = 50;
+    int decayed_flag = 0;
     ProcessList* running_process = NULL;
     ProcessList* resultant_list = NULL;
 
@@ -331,6 +311,14 @@ ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arriva
                     printf("Time passed: %d\n", *time);
 
                 checkArrivals(&ready_queue, &incoming_arrivals, time, running_process);
+
+                if (*time > decay_init_time) {
+                    // get last process
+                    
+
+                    }
+
+                }
             }
 
             // printf("Current time: %d\n", *time);
@@ -364,14 +352,12 @@ ProcessList* runProcesses(ProcessList* ready_queue, ProcessList* incoming_arriva
     return resultant_list;    
 }
 
-/* 
-    getTestData
-    gets the data to run the algorithm from a given file
-    if no file is specified, it will default to the data.csv given
-    will append all the processes in the process_list variable
-    if the processes arrival time are 0, the process will be taken to the ready_queue, ordered by burst time
-    if the processes arrival time >0, will be added to the incoming_arrivals queue, ordered by arrival time
-*/
+// getTestData
+// gets the data to run the algorithm from a given file
+// if no file is specified, it will default to the data.csv given
+// will append all the processes in the process_list variable
+// if the processes arrival time are 0, the process will be taken to the ready_queue, ordered by burst time
+// if the processes arrival time >0, will be added to the incoming_arrivals queue, ordered by arrival time
 int getTestData(char* filepath, int* num_of_processes, ProcessList** process_list, ProcessList** ready_queue, ProcessList** incoming_arrivals) {
     FILE* fp;
     char* line = NULL;
@@ -416,10 +402,8 @@ int getTestData(char* filepath, int* num_of_processes, ProcessList** process_lis
     return 0;
 }
 
-/*
-     printHelp
-    prints the help menu
-*/
+// printHelp
+// prints the help menu
 void printHelp(const char* name, const char* option) {
     printf("unknown option: %s\n", option);
     printf("usage:\t%s [flags]\n", name);
@@ -430,11 +414,9 @@ void printHelp(const char* name, const char* option) {
     return;
 }
 
-/* 
-    calculateStats
-    the whole point is to calculate average waiting time and turnaround times right?
-    will loop through a given process list and do exactly that
-*/
+// calculateStats
+// the whole point is to calculate average waiting time and turnaround times right?
+// will loop through a given process list and do exactly that
 void calculateStats(ProcessList* process_list) {
     int total_num_of_processes = 0;
     float total_waiting_time = 0.0;
