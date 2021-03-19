@@ -1,0 +1,5 @@
+;pid, burst time, arrival time, priority
+1,10,0,1
+2,5,0,3
+3,15,1,1
+4,21,4,0

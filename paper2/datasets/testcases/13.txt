@@ -1,0 +1,7 @@
+;pid, burst time, arrival time, priority
+1,		45,		0,		0
+2,		90,		5,		0
+3,		70,		8,		0
+4,		38,		15,		0
+5,		55,		20,		0
+; Process starvation of Process 2
