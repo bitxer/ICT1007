@@ -11,35 +11,6 @@ PROCESS_PTR term_q_tail = NULL;     // Tail pointer for Terminated process queue
 
 int QUIET = FALSE, INTERACTIVE = FALSE;
 
-void print_process(PROCESS_PTR process) {
-    // DEVELOPMENT CODE
-    if (process == NULL) {
-        DEBUG("NULL\n");
-        return;
-    }
-    int pid = process->pid;
-    DEBUG("***** Process %d [%p] *****\n", pid, process);
-    DEBUG("Arrival Time for Process %d: %d\n", pid, process->t_arrival);
-    DEBUG("Burst Time for Process %d: %d\n", pid, process->t_exec);
-    DEBUG("Remaining Time required: %d\n", process->t_remain);
-    DEBUG("Status Flag: %d\n", process->status_flag);
-    DEBUG("Turnaround time: %d\n", process->t_turn);
-    DEBUG("Waiting time: %d\n", process->t_wait);
-    DEBUG("Pointer for next element: %p\n", process->next);
-    DEBUG("\n");
-}
-
-void print_report(PROCESS_PTR head) {
-    // DEVELOPMENT CODE
-    PROCESS_PTR p_iter = head;
-    DEBUG("********** Linkedlist report **********\n");
-    while (p_iter != NULL) {
-        print_process(p_iter);
-        p_iter = p_iter->next;
-    }
-    // END DEVELOPMENT CODE
-}
-
 /*
  * Insert Process to Process Queue
  *
@@ -130,8 +101,6 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
     
     // Sort ready queue based on remaining time using bubble sort
     sort_ready_queue();
-    DEBUG("[INSERT READY Q AFTER] Sort ready queue\n");
-    print_report(ready_q_head);
 
     // Declare some variables to be used in loop
     // PROCESS_PTR arrival_iter = arrival_q, p_prev = NULL;
@@ -140,8 +109,6 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
 
     // Add new process to queue using insertion sort
     while (arrival_q != NULL) {
-        DEBUG("[INSERT READY Q LOOP] ARRIVAL QUEUE\n")
-        print_report(arrival_q);
         if (ready_iter == NULL || ready_iter->t_remain > arrival_q->t_remain) {
             // If current process in ready queue have a larger remaining time than in current process in arrival queue
             // Remember next process in arrival queue
@@ -161,8 +128,6 @@ void insert_ready_q(PROCESS_PTR arrival_q) {
             arrival_q = temp_process;
             ready_iter = ready_q_head;
             p_prev = NULL;
-            DEBUG("[INSERT READY QUEUE] READY QUEUE\n");
-            print_report(ready_q_head);
         } else  {
             // Pointer is not at correct position
             // Prepare pointers for next iteration
@@ -238,7 +203,6 @@ void print_help(char * exe_name) {
  */
 void print_config() {
     printf("==============================================================================================\n");
-    DEBUG("Debug: Enabled\n");
     switch (QUIET){
     case TRUE:
         printf("Quiet Mode: Enabled\n");
@@ -319,9 +283,7 @@ int main(int argc, char * argv[]) {
     VERBOSE("Arrangement of processes in ready queue\n");
     // Initialise variables for use for program execution
     int p_term = 0;
-    while (process_q_head || ready_q_head) {        
-        DEBUG("[main] **************************\n")
-        DEBUG("[main] Time: %d\n", t_current);
+    while (process_q_head || ready_q_head) {
 
         // Check if new process arrived
         if (ready_q_head == NULL) {
@@ -332,11 +294,6 @@ int main(int argc, char * argv[]) {
         if (arrival_q) {
             insert_ready_q(arrival_q);
         }
-        DEBUG("[main] PROCESS QUEUE\n");
-        print_report(process_q_head);
-        DEBUG("[main] READY QUEUE\n");
-        print_report(ready_q_head);
-        DEBUG("[main] CURRENT_PROCESS\n");
 
         if (!ready_q_head) {
             // if no process is in ready queue
@@ -354,8 +311,6 @@ int main(int argc, char * argv[]) {
             p_end->next = NULL;
         }
 
-
-        print_process(ready_q_head);
         print_queue(ready_q_head);
         // "Run" current process
         t_current += t_quantum;
@@ -384,12 +339,9 @@ int main(int argc, char * argv[]) {
             // Remove process from ready queue
             ready_q_head = ready_q_head->next;
             term_q_tail->next = NULL;
-            DEBUG("[main] ----- After terminate -----\n");
-            print_process(ready_q_head);
         } else {
             p_term = 0;
         }
-        DEBUG("\n\n\n");
     }
 
     VERBOSE("==============================================================================================\n");
@@ -397,8 +349,6 @@ int main(int argc, char * argv[]) {
     // Initialise variables for use with process analysis
     float total_wait = 0.0, total_turn = 0.0;
     PROCESS_PTR p_iter = term_q_head;
-    DEBUG("[main] Terminated queue\n");
-    print_report(term_q_head);
     while (p_iter != NULL) {
         // Print process details to screen
         printf("%6d\t%15d\t%13d\t%15d\t\t%15d\n", p_iter->pid, p_iter->t_arrival, p_iter->t_exec, p_iter->t_turn, p_iter->t_wait);

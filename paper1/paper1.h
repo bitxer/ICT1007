@@ -5,16 +5,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
-// Development Functions
-// #define _DEBUG
-#ifdef _DEBUG
-    #define DEBUG(...) fprintf(stderr, __VA_ARGS__);
-#else
-    #define DEBUG(...)
-#endif
-
-
 extern int QUIET;
 extern int INTERACTIVE;
 #define TRUE 1
