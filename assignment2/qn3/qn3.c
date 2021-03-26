@@ -8,7 +8,6 @@
 #include <libgen.h>
 #include <sys/wait.h>
 
-
 #define BUF_SIZE 512
 #define READING_STDIN 1
 #define SHELL 1
@@ -20,7 +19,7 @@ int shell_execute_line(char **args);
 int cmd_pwd();
 int cmd_exit();
 int cmd_copy(char **args);
-void create_file(int fd1, int fd2);
+void copy_file(int fd1, int fd2);
 int check_permission(struct stat file_info, char *cmd, char* msg, char* file_path, int mode);
 
 
@@ -36,32 +35,51 @@ int main(){
     exit(EXIT_SUCCESS);
 }
 
+/**
+ *  Continous Accept Command until the Shell terminates
+ */
 void shell_loop(){
     char *cmd;
     char **args;
     int status;
-    int io_redirect;
-    pid_t pid;
-
+    // The Shell will perform the following actions
+    //  1.  Read user input
+    //  2.  Split the user input into arguments
+    //  3.  Execute the command by the user
+    //  4.  Go to Step 1
     do{
         printf("BudgetShell$ ");
         cmd = shell_read_line();
         args = shell_split_line(cmd);
-        status = shell_execute_line(args);
+        if (args != NULL){
+            status = shell_execute_line(args);
+        }
 
     } while (SHELL);
 }
 
+/**
+ *  Gets the input of user from STDIN
+ * 
+ *  Return:
+ *      buffer  -   a string containing the command input by user
+ */
 char *shell_read_line(){
 
+    //the current position of the buffer
     int position = 0;
+
+    // temporary store for a character
     int std_in;
     char *buffer = malloc(sizeof(char) * BUF_SIZE);
 
+    // Loops continous until EOF or ENTER key is received
     while (READING_STDIN){
         std_in = getchar();
 
+        //Check if EOF or ENTER is recieved
         if (std_in == EOF || std_in == '\n'){
+            //Set the last character to be a null character
             buffer[position] = '\0';
             return buffer;
         } else {
@@ -75,29 +93,51 @@ char *shell_read_line(){
 #define SHELL_TOK_REDIRECT ">"
 #define SHELL_TOK_ARGS " \t\r\n\a"
 
+/**
+ *  Splits the command given by the user into arguments
+ *  and create files used for I/O redirection
+ * 
+ *  Arguments:
+ *      cmd     -   the string to extract the arguments from
+ * 
+ *  Returns:
+ *      Success
+ *      args    -   an array of arguments to execute
+ *      Fail
+ *      NULL    -   If no permission is given to create/access the file, command will not be executed
+ *      
+ */
+
 char **shell_split_line(char *cmd){
     int position = 0;
     char **args = malloc(sizeof(char*) * BUF_SIZE);
     char *arg;
     struct stat buf;
 
+    //  Check for I/O Redirection
     arg = strtok(cmd, SHELL_TOK_REDIRECT);
-    arg = strtok(NULL, SHELL_TOK_REDIRECT);
+    arg = strtok(NULL, SHELL_TOK_REDIRECT); // gets the string after '>'
+
+    // Loops until no more redirection is found
     while (arg != NULL){
         char *write = arg, *read = arg;
+
+        //Strips white space in characters
         do {
             if (*read != ' ')
                 *write++ = *read;
         } while (*read++);
-        stat(arg, &buf);
-        if (check_permission(buf, "BudgetShell", "", arg, WRITE)){
+
+        //Gets fd for the io redirect
+        io_redirect_fd = open(arg, O_WRONLY | O_CREAT, 0666);
+        if (io_redirect_fd == -1){
+            printf("BudgetShell: cannot create regular file '%s': Permission denied\n", arg);
             return NULL;
         }
-        io_redirect_fd = open(arg, O_WRONLY | O_CREAT, 0666);
         arg = strtok(NULL, SHELL_TOK_REDIRECT);
     }
 
-
+    // Gets the command and arguemnts
     arg = strtok(cmd, SHELL_TOK_ARGS);
 
     while (arg != NULL){
@@ -116,44 +156,66 @@ char **shell_split_line(char *cmd){
 #define CMD_EXIT "exit"
 #define CMD_COPY "cp"
 
+/**
+ *  Execute command that was given by user by forking it
+ * 
+ *  Arguments:
+ *      args    -   command to be executed
+ * 
+ *  Return:
+ *      status  -   the status of the executed process
+ */
 int shell_execute_line(char **args){
     pid_t pid;
     int status;
     int saved_stdout;
+    // Check if exit command is given to exit the shell
     if ( strcmp(args[CMD], CMD_EXIT) == 0){
         return cmd_exit();
     }
+
+    // forks the process to run the command
     if ((pid = fork()) == -1){
-        perror("Fork Error");
+        perror("Fork Error");   //If failed, close the process
         exit(EXIT_FAILURE);
-    } else if (pid == 0){
-        if (io_redirect_fd > 1){
-            saved_stdout = dup(STDOUT_FILENO);
-            dup2(io_redirect_fd, STDOUT_FILENO);
+    } else if (pid == 0){   //Enter here if the process is the child
+        if (io_redirect_fd > 1){                    // Check if it is io redirection
+            saved_stdout = dup(STDOUT_FILENO);      //Save a copy of stdout to restore after child execution
+            dup2(io_redirect_fd, STDOUT_FILENO);    // dup io redirect fd so that stdout will be sent to file instead of command prompt
             close(io_redirect_fd);
             io_redirect_fd = 1;
         } 
-        if ( strcmp(args[CMD], CMD_PWD) == 0){
+        if ( strcmp(args[CMD], CMD_PWD) == 0){      //Checks if cmd is "pwd"
             status = cmd_pwd();
-        } else if ( strcmp(args[CMD], CMD_COPY) == 0){
+        } else if ( strcmp(args[CMD], CMD_COPY) == 0){  // Checks if cmd is "cp" 
             status = cmd_copy(args);
         }
 
         //Restore STDOUT
         dup2(saved_stdout, STDOUT_FILENO);
         close(saved_stdout);
-        exit(status);
+        exit(status);   //Command execution ends here
     }
-    pid = waitpid(pid, &status, 0);
+    pid = waitpid(pid, &status, 0); // Waits for command to finish executing
     return status;
 }
 
+/**
+ *  Prints the Current Working Directory
+ */
 int cmd_pwd(){
     char current_directory[BUF_SIZE];
     getcwd(current_directory, BUF_SIZE);
     printf("%s\n", current_directory);
     return 0;
 }
+
+/**
+ *  Executes the copy command given by user
+ * 
+ *  Arguments:
+ *      args    - contains the arguments that will be used with cp cmd
+ */
 
 int cmd_copy(char **args){
     int num_arg = 0, source_fd, dest_fd;
@@ -162,14 +224,16 @@ int cmd_copy(char **args){
     char buf[BUF_SIZE];
     struct stat stat_source_buf, stat_dest_buf;
 
+    //  Check if cp command is supplied with valid arguments
     do{
         if (args[num_arg + 1] == NULL){
+            // Check if destination file exist
             int is_file_exist = stat(*(args + num_arg), &stat_dest_buf);
 
-            if (num_arg + 1 == 1){
+            if (num_arg + 1 == 1){  //Check if command is supplied with 'cp' and no other arguments
                  printf("cp: missing file operand\n");
                  return 1;
-             } else if (num_arg + 1 == 2){
+             } else if (num_arg + 1 == 2){  //Check if destination file/directory is given
                  printf("cp: missing destination file operand after '%s'\n", *(args + num_arg));
                  return 1;
              } else if (num_arg + 1 > 3){
@@ -187,15 +251,25 @@ int cmd_copy(char **args){
     } while (*(args + num_arg) != NULL);
 
     for (int i = 1; i < num_arg - 1; i++){
+
         if (stat(*(args + i), &stat_source_buf) < 0){
             printf("cp: cannot stat '%s': No such file or directory\n", args[i]);
             continue;
         }
+
+        
+
         mode_t mode = stat_source_buf.st_mode;
         source_fd = open(*(args + i), O_RDONLY);
 
-        if (check_permission(stat_source_buf, CMD_COPY," cannot open", args[i], READ)){
+        if (source_fd == -1){
+            printf("cp: cannot open '%s' for reading: Permission denied\n", args[i]);
             return 1;
+        }
+
+        if (stat_source_buf.st_ino == stat_dest_buf.st_ino){
+            printf("cp: '%s' and '%s' are the same file\n", *(args + i), destination);
+            continue;
         }
 
         if (S_ISDIR(mode)){
@@ -203,46 +277,44 @@ int cmd_copy(char **args){
             continue;
         }
         if (S_ISREG(mode) && !S_ISDIR(stat_dest_buf.st_mode)){
-            if (check_permission(stat_dest_buf, CMD_COPY, " cannot create regular file", args[num_arg - 1], WRITE)){
-                return 1;
-            }
 
             dest_fd = open(args[num_arg - 1], O_WRONLY | O_CREAT, mode);
-            create_file(source_fd, dest_fd);
-        } else {
-            char file_path[BUF_SIZE];
-            snprintf(file_path, sizeof(file_path), "%s/%s", args[num_arg - 1], basename(args[i]));
-
-            if (check_permission(stat_dest_buf, CMD_COPY ," cannot stat", file_path, WRITE)){
+            if (dest_fd == -1){
+                printf("cp: cannot create regular file '%s': Permission denied\n", args[num_arg - 1]);
                 return 1;
             }
+                copy_file(source_fd, dest_fd);
+
+        } else {
+            char file_path[BUF_SIZE];
+            struct stat stat_dest;
+            snprintf(file_path, sizeof(file_path), "%s/%s", args[num_arg - 1], basename(args[i]));
 
             dest_fd = open(file_path, O_WRONLY | O_CREAT, mode);
-            create_file(source_fd, dest_fd); 
+
+            if (dest_fd == -1){
+                printf("cp: cannot stat '%s': No such file or directory\n", file_path);
+                return 1;
+            }
+            fstat(dest_fd, &stat_dest);
+            if (stat_source_buf.st_ino == stat_dest.st_ino){
+                printf("cp: '%s' and '%s' are the same file\n", *(args + i), file_path);
+            }
+
+
+            copy_file(source_fd, dest_fd); 
         }
     }
 }
 
-#define USR_PER 0
-#define GRP_PER 1
-#define OTH_PER 2
-
-int check_permission(struct stat file_info, char *cmd, char* msg, char *file_path, int mode){
-    mode_t permission[2][3] = {{S_IRUSR, S_IRGRP, S_IROTH},{S_IWUSR, S_IWGRP, S_IWOTH}};
-    char msg2[2][20] = {" for reading", ""};  
-
-    if ( ((file_info.st_mode & permission[mode][USR_PER]) && getuid() == file_info.st_uid ||
-          (getuid() != file_info.st_uid && getgid() == file_info.st_gid && (file_info.st_mode & permission[mode][GRP_PER])) ||
-          (getuid() != file_info.st_uid && getgid() != file_info.st_gid && (file_info.st_mode & permission[mode][OTH_PER])))
-                == 0){
-        printf("%s:%s '%s'%s: Permission denied\n", cmd, msg, file_path, msg2[mode]);
-        return 1;
-    }
-    return 0;
-}
-
-
-void create_file(int fd1, int fd2){
+/**
+ *  Copy contents of fd1 to fd2
+ * 
+ *  Arguments:
+ *      fd1     -   file to be copied
+ *      fd2     -   file to write the contents to
+ */
+void copy_file(int fd1, int fd2){
     char buf[BUF_SIZE];
     ssize_t nread;
 
@@ -250,7 +322,9 @@ void create_file(int fd1, int fd2){
         write(fd2, buf, nread);
     }
 }
-
+/**
+ *  Ends the proccess and exits the Shell
+ */
 int cmd_exit(){
     exit(EXIT_SUCCESS);
 }
