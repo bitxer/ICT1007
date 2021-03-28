@@ -99,7 +99,7 @@ int main(int argc, char * argv[]) {
         pthread_join(t[i], NULL);
     }
     
-    //Destroy mutex after use
+    // Destroy mutex after use
     pthread_mutex_destroy(&mutex);
     return 0;
 }
