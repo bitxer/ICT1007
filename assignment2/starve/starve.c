@@ -10,21 +10,23 @@ void * copy(void * _args) {
         pthread_exit(NULL);
     }
     
-    // Initialise memory location for destination
-    int s_dest = strlen(args->src) + 1 + strlen(args->dest) + 3;
-    char * dest = malloc(s_dest);
-
     // Update destination with string
-    snprintf(dest, s_dest, "%s/%s%d", args->dest, args->src, args->thread_id);
     pthread_mutex_lock(&mutex);
     printf("Thread-%d is copying files\n", args->thread_id);
     FILE * f_src = fopen(args->src, "rb");
-    FILE * f_dst = fopen(dest, "w+");
+    FILE * f_dst = fopen(args->dest, "w+");
     if (f_dst == NULL) {
-        printf("Thread-%d: Error creating file %s\n", args->thread_id, dest);
+        printf("Thread-%d: Error creating file %s\n", args->thread_id, args->dest);
         pthread_mutex_unlock(&mutex);
         pthread_exit(NULL);
     }
+
+    char buffer[10];
+
+    while (fread(buffer, sizeof(buffer), 1, f_src) != 0) {
+        fwrite(buffer, sizeof(buffer), 1, f_dst);
+    }
+
     fclose(f_dst);
     fclose(f_src);
     pthread_mutex_unlock(&mutex);
@@ -50,6 +52,10 @@ int main(int argc, char * argv[]) {
         mkdir(argv[2], 0700);
     }
 
+    // int s_src = strlen(argv[1]) + 1, s_dest = strlen(argv[2]) + 1;
+    char * f_name = basename(argv[1]);
+    int s_src = strlen(argv[1]) + 1;
+    int s_dest = strlen(f_name) + 1 + strlen(argv[2]) + 3;
 
     //Initialize mutex
     pthread_mutex_init(&mutex, NULL);
@@ -61,14 +67,13 @@ int main(int argc, char * argv[]) {
         ARGS_PTR args = malloc(sizeof(ARGS));
 
         // Initialise memory location
-        int s_src = strlen(argv[1]) + 1, s_dest = strlen(argv[2]) + 1;
         args->src = malloc(s_src);
         args->dest = malloc(s_dest);
         
         // Setup arguments
         args->thread_id = i;
         snprintf(args->src, s_src, "%s", argv[1]);
-        snprintf(args->dest, s_dest, "%s", argv[2]);
+        snprintf(args->dest, s_dest, "%s/%s%d", argv[2], f_name, i);
 
         // Create threads
         pthread_create(&t[i], NULL, copy, args);

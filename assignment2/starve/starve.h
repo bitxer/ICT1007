@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
