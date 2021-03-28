@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #define _DEBUG
 #ifdef _DEBUG
     #define DEBUG(...) fprintf(stderr, __VA_ARGS__);

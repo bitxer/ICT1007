@@ -15,10 +15,18 @@ void * copy(void * _args) {
     char * dest = malloc(s_dest);
 
     // Update destination with string
-    snprintf(dest, s_dest, "%s/%s%d", args->src, args->dest, args->thread_id);
+    snprintf(dest, s_dest, "%s/%s%d", args->dest, args->src, args->thread_id);
     pthread_mutex_lock(&mutex);
     printf("Thread-%d is copying files\n", args->thread_id);
-    sleep(1);
+    FILE * f_src = fopen(args->src, "rb");
+    FILE * f_dst = fopen(dest, "w+");
+    if (f_dst == NULL) {
+        printf("Thread-%d: Error creating file %s\n", args->thread_id, dest);
+        pthread_mutex_unlock(&mutex);
+        pthread_exit(NULL);
+    }
+    fclose(f_dst);
+    fclose(f_src);
     pthread_mutex_unlock(&mutex);
     pthread_exit(NULL);
 }
@@ -28,6 +36,20 @@ int main(int argc, char * argv[]) {
         printf("Usage: %s [source file] [destination_directory]\n", argv[0]);
         return 1;
     }
+
+    if (access(argv[1], R_OK) != 0) {
+        printf("\"%s\" is not readable\n", argv[1]);
+        return 1;
+    }
+
+    struct stat st = {0};
+    
+    // Check if directory exist
+    if (stat(argv[2], &st) == -1) {
+        // Create if does not exist
+        mkdir(argv[2], 0700);
+    }
+
 
     //Initialize mutex
     pthread_mutex_init(&mutex, NULL);
