@@ -20,8 +20,7 @@ int cmd_pwd();
 int cmd_exit();
 int cmd_copy(char **args);
 void copy_file(int fd1, int fd2);
-int check_permission(struct stat file_info, char *cmd, char* msg, char* file_path, int mode);
-
+void close_files(int fd1, int fd2);
 
 int io_redirect_fd = -1;
 
@@ -189,6 +188,8 @@ int shell_execute_line(char **args){
             status = cmd_pwd();
         } else if ( strcmp(args[CMD], CMD_COPY) == 0){  // Checks if cmd is "cp" 
             status = cmd_copy(args);
+        } else {
+            printf("Command '%s' not found.\n", args[CMD]);
         }
 
         //Restore STDOUT
@@ -232,6 +233,7 @@ int cmd_copy(char **args){
 
             if (num_arg + 1 == 1){  //Check if command is supplied with 'cp' and no other arguments
                  printf("cp: missing file operand\n");
+                 printf("cp [source] [destination]\ncp [source] ... [directory]");
                  return 1;
              } else if (num_arg + 1 == 2){  //Check if destination file/directory is given
                  printf("cp: missing destination file operand after '%s'\n", *(args + num_arg));
@@ -257,8 +259,6 @@ int cmd_copy(char **args){
             continue;
         }
 
-        
-
         mode_t mode = stat_source_buf.st_mode;
         source_fd = open(*(args + i), O_RDONLY);
 
@@ -269,11 +269,13 @@ int cmd_copy(char **args){
 
         if (stat_source_buf.st_ino == stat_dest_buf.st_ino){
             printf("cp: '%s' and '%s' are the same file\n", *(args + i), destination);
+            close(source_fd);
             continue;
         }
 
         if (S_ISDIR(mode)){
             printf("cp: omitting directory '%s'\n", args[i]);
+            close(source_fd);
             continue;
         }
         if (S_ISREG(mode) && !S_ISDIR(stat_dest_buf.st_mode)){
@@ -281,9 +283,11 @@ int cmd_copy(char **args){
             dest_fd = open(args[num_arg - 1], O_WRONLY | O_CREAT, mode);
             if (dest_fd == -1){
                 printf("cp: cannot create regular file '%s': Permission denied\n", args[num_arg - 1]);
+                close_files(source_fd, dest_fd);
                 return 1;
             }
                 copy_file(source_fd, dest_fd);
+                close_files(source_fd, dest_fd);
 
         } else {
             char file_path[BUF_SIZE];
@@ -294,15 +298,19 @@ int cmd_copy(char **args){
 
             if (dest_fd == -1){
                 printf("cp: cannot stat '%s': No such file or directory\n", file_path);
+                close_files(source_fd, dest_fd);
                 return 1;
             }
             fstat(dest_fd, &stat_dest);
             if (stat_source_buf.st_ino == stat_dest.st_ino){
                 printf("cp: '%s' and '%s' are the same file\n", *(args + i), file_path);
+                close_files(source_fd, dest_fd);
+                return 1;
             }
 
 
             copy_file(source_fd, dest_fd); 
+            close_files(source_fd, dest_fd);
         }
     }
 }
@@ -322,6 +330,14 @@ void copy_file(int fd1, int fd2){
         write(fd2, buf, nread);
     }
 }
+/**
+ *  Closes file decripters
+ */
+void close_files(int fd1, int fd2){
+    close(fd1);
+    close(fd2);
+}
+
 /**
  *  Ends the proccess and exits the Shell
  */
