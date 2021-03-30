@@ -16,7 +16,7 @@
  */
 
 void * gates(void * _args) {
-	for (int i = 1; i <= 1001; i++) {
+	for (int i = 0; i < 1000; i++) {
 		int gateCount = 0, visitorCount = 0, exitCount = 0;
 		FILE * f_gateCount = fopen(GATE_COUNT_FNAME, "r+");
 		FILE * f_visitorCount = fopen(VISITOR_COUNT_FNAME, "r+");
