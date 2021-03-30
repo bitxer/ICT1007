@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <time.h>
+#include <getopt.h>
 
 // global mutex x5
 pthread_mutex_t first_mutex, second_mutex, third_mutex, fourth_mutex, fifth_mutex;
@@ -98,6 +99,7 @@ void *cause_a_deadlock(void *param) {
     printf("Thread %d attempting to acquire mutex %d...\n", key, mutex_num);
     pthread_mutex_lock(next_mutex_to_acquire);
     printf("Thread %d acquired mutex %d\n", key, mutex_num);
+    
     // critical section
     printf("Inside Thread %d Critical Section\n", key);
     // end critical section
@@ -109,6 +111,10 @@ void *cause_a_deadlock(void *param) {
     pthread_exit(0);
 }
 
+void *fix_a_deadlock(void *param) {
+    return NULL;
+}
+
 void traverseList(mutex_map** head) {
     mutex_map *temp = *head;
     while (temp != NULL) {
@@ -117,12 +123,53 @@ void traverseList(mutex_map** head) {
     }
 }
 
-int main() {
+/*
+     printHelp
+    prints the help menu
+*/
+void printHelp(const char* name, const char* option) {
+    printf("usage:\t%s [flags]\n", name);
+    printf("-d\tdeadlock mode\n");
+    printf("-h\tprint this help menu\n");
+    printf("-s\tsolve the deadlock\n");
+    return;
+}
+
+int main(int argc, char* argv[]) {
+    int opt = 0;
+    void *function_to_run = NULL;
+    
+    if (argc > 1) {
+        while ((opt = getopt(argc, argv, "dhs")) != -1) {
+            switch (opt) {
+                case 'd':
+                    function_to_run = cause_a_deadlock;
+                    break;
+                case 'h':
+                    printHelp(argv[0], argv[1]);
+                    return 0;
+                case 's':
+                    // solution mode
+                    printf("Solution mode not implemented yet...\n");
+                    return -1;
+                    break;
+                default: /* '?' */
+                    printHelp(argv[0], argv[1]);
+                    return -1;
+            }
+        }
+    } else {
+        printHelp(argv[0], argv[1]);
+        return -1;
+    }
+
     srand(time(0));
+
     pthread_t thread_1, thread_2, thread_3, thread_4, thread_5;
     
     mutex_map *first_mutex_map, *second_mutex_map, *third_mutex_map, *fourth_mutex_map, *fifth_mutex_map;
     mutex_map *head = NULL;
+    
 
     thread_params *first_tp = createMutexMap(&first_mutex_map, 1, &first_mutex, &head);
     thread_params *second_tp = createMutexMap(&second_mutex_map, 2, &second_mutex, &head);
@@ -137,11 +184,11 @@ int main() {
     addToList(&head, &fifth_mutex_map);
     
 
-    pthread_create(&thread_1, NULL, cause_a_deadlock, first_tp);
-    pthread_create(&thread_2, NULL, cause_a_deadlock, second_tp);
-    pthread_create(&thread_3, NULL, cause_a_deadlock, third_tp);
-    pthread_create(&thread_4, NULL, cause_a_deadlock, fourth_tp);
-    pthread_create(&thread_5, NULL, cause_a_deadlock, fifth_tp);
+    pthread_create(&thread_1, NULL, function_to_run, first_tp);
+    pthread_create(&thread_2, NULL, function_to_run, second_tp);
+    pthread_create(&thread_3, NULL, function_to_run, third_tp);
+    pthread_create(&thread_4, NULL, function_to_run, fourth_tp);
+    pthread_create(&thread_5, NULL, function_to_run, fifth_tp);
 
     pthread_join(thread_1, NULL);
     pthread_join(thread_2, NULL);
