@@ -1,28 +1,4 @@
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <unistd.h>
-#include <time.h>
-#include <getopt.h>
-
-// global mutex x5
-pthread_mutex_t first_mutex, second_mutex, third_mutex, fourth_mutex, fifth_mutex;
-
-
-// create a struct cause dynamic
-typedef struct mutex_map_struct {
-    int key;
-    pthread_mutex_t *mutex;
-    struct mutex_map_struct *next;
-} mutex_map;
-
-
-typedef struct thread_params_struct {
-    mutex_map **map;
-    mutex_map **head;
-} thread_params;
-
+#include "deadlock.h"
 
 thread_params *createMutexMap(mutex_map** dict, int key, pthread_mutex_t* mutex, mutex_map** head) {
     int resp = pthread_mutex_init(mutex, NULL);
@@ -56,20 +32,68 @@ void addToList(mutex_map** head, mutex_map** mutex) {
 
 }
 
+void readFile(char** buffer, int key, int* filesize) {
+    FILE *fp;
+
+    char* filename = (char*)calloc(BUFFER_SIZE, sizeof(char));
+    snprintf(filename, BUFFER_SIZE, "files/file_%d.txt", key);
+    
+    fp = fopen(filename, "r");
+
+    // get size of contents in file
+    fseek(fp, 0L, SEEK_END);
+    *filesize = ftell(fp);
+    fseek(fp, 0L, SEEK_SET);
+
+    if (*filesize > BUFFER_SIZE) {
+        *buffer = realloc(*buffer, *filesize);
+    }
+
+    fread(*buffer, (*filesize)+1, 1, fp);
+    free(filename);
+    fclose(fp);
+}
+
+void writeFile(char** buffer, int key, int* filesize) {
+    FILE *fp;
+
+    char* filename = (char*)calloc(BUFFER_SIZE, sizeof(char));
+    int file_id = 0;
+    
+    if (key == NUMBER_OF_THREADS) {
+        file_id = 1;
+    } else {
+        file_id = key+1;
+    }
+    snprintf(filename, BUFFER_SIZE, "files/file_%d.txt", file_id);
+    
+    fp = fopen(filename, "a");
+
+    fwrite("\n", sizeof(char), 1, fp);
+    fwrite(*buffer, *filesize, 1, fp);
+    printf("[Process %d]\t Written content to ./%s\n", key, filename);
+
+    free(filename);
+    fclose(fp);
+}
+
 void *cause_a_deadlock(void *param) {
     thread_params *tp = (thread_params*) param;
     mutex_map **map = tp->map;
     mutex_map **head = tp->head;
     
+
     int key = (*map)->key;
     pthread_mutex_t *mutex = (*map)->mutex;
     
-    printf("Thread %d started...\n", key);
+    printf("[Process %d]\t Process %d starting...\n", key, key);
+
+    printf("[Process %d]\t Acquiring Mutex %d\n", key, key);
 
     // lock its own mutex
     pthread_mutex_lock(mutex);
 
-    printf("Thread %d acquired mutex %d\n", key, key);
+    printf("[Process %d]\t Acquired Mutex %d\n", key, key);
 
     // find the next mutex
     mutex_map *temp = *head;
@@ -96,23 +120,101 @@ void *cause_a_deadlock(void *param) {
     }
 
     sleep(rand() % 10);
-    printf("Thread %d attempting to acquire mutex %d...\n", key, mutex_num);
+    printf("[Process %d]\t Acquiring Mutex %d...\n", key, mutex_num);
     pthread_mutex_lock(next_mutex_to_acquire);
-    printf("Thread %d acquired mutex %d\n", key, mutex_num);
-    
+    printf("[Process %d]\t Acquired Mutex %d\n", key, mutex_num);
+
     // critical section
-    printf("Inside Thread %d Critical Section\n", key);
+    printf("[Process %d]\t Entering Critical Section...\n", key);
+
+    char* readBuffer = (char*)calloc(BUFFER_SIZE, sizeof(char));
+    int filesize = 0;
+
+    readFile(&readBuffer, key, &filesize);
+
+    printf("[Process %d]\t Contents of file_%d: %s\n", key, key, readBuffer);
+
+    writeFile(&readBuffer, key, &filesize);
+
     // end critical section
 
     pthread_mutex_unlock(mutex);
     pthread_mutex_unlock(next_mutex_to_acquire);
-    printf("Thread %d released mutex %d and %d.\n", key, key, mutex_num);
+    printf("[Process %d]\t Released Mutex %d and %d.\n", key, key, mutex_num);
 
     pthread_exit(0);
 }
 
 void *fix_a_deadlock(void *param) {
-    return NULL;
+    thread_params *tp = (thread_params*) param;
+    mutex_map **map = tp->map;
+    mutex_map **head = tp->head;
+    
+
+    int key = (*map)->key;
+    pthread_mutex_t *mutex = (*map)->mutex;
+    
+    printf("[Process %d]\t Process %d starting... \n", key, key);
+
+    printf("[Process %d]\t Acquiring Mutex %d...\n", key, key);
+    // lock its own mutex
+    pthread_mutex_lock(mutex);
+
+    printf("[Process %d]\t Acquired Mutex %d\n", key, key);
+
+    // critical section 1
+    printf("[Process %d]\t Entering Critical Section 1\n", key);
+    char *readBuffer = (char*)calloc(BUFFER_SIZE, sizeof(char));
+    int filesize = 0;
+    readFile(&readBuffer, key, &filesize);
+
+    printf("[Process %d]\t Contents of file_%d: %s\n", key, key, readBuffer);
+
+    // end critical section 1
+    printf("[Process %d]\t End of Critical Section 1\n", key);
+
+    // unlock the mutex its already holding
+    pthread_mutex_unlock(mutex);
+    printf("[Process %d]\t Released Mutex %d\n", key, key);
+
+    // find the next mutex
+    mutex_map *temp = *head;
+
+    while (temp != NULL) {
+        if (temp->key == key) {
+            break;
+        }
+        temp = temp->next;
+    }
+
+    pthread_mutex_t *next_mutex_to_acquire;
+    int mutex_num = 0;
+
+    if (temp->next != NULL) {
+        mutex_num = temp->next->key;
+        next_mutex_to_acquire = temp->next->mutex;
+
+    } else {
+        // means at the end of the linked list
+        mutex_map *first = *head;
+        next_mutex_to_acquire = first->mutex;
+        mutex_num = first->key;
+    }
+
+    sleep(rand() % 10);
+    printf("[Process %d]\t Acquiring Mutex %d...\n", key, mutex_num);
+    pthread_mutex_lock(next_mutex_to_acquire);
+    printf("[Process %d]\t Acquired Mutex %d\n", key, mutex_num);
+
+    // critical section
+    printf("[Process %d]\t Entering Critical Section 2\n", key);
+    writeFile(&readBuffer, key, &filesize);
+    // end critical section
+
+    pthread_mutex_unlock(next_mutex_to_acquire);
+    printf("[Process %d]\t Released Mutex %d\n", key, mutex_num);
+
+    pthread_exit(0);
 }
 
 void traverseList(mutex_map** head) {
@@ -128,6 +230,13 @@ void traverseList(mutex_map** head) {
     prints the help menu
 */
 void printHelp(const char* name, const char* option) {
+    printf("===========================================\n");
+    printf("DEADLOCK\n");
+    printf("This program simulates and solves deadlock.\n\n");
+    printf("The program's objective is to create \nN number of threads.\n\n"); 
+    printf("Each thread will read file_n.txt and will \nappend the contents ");
+    printf("over to file_n+1.txt.\n");
+    printf("===========================================\n");
     printf("usage:\t%s [flags]\n", name);
     printf("-d\tdeadlock mode\n");
     printf("-h\tprint this help menu\n");
@@ -150,8 +259,7 @@ int main(int argc, char* argv[]) {
                     return 0;
                 case 's':
                     // solution mode
-                    printf("Solution mode not implemented yet...\n");
-                    return -1;
+                    function_to_run = fix_a_deadlock;
                     break;
                 default: /* '?' */
                     printHelp(argv[0], argv[1]);
