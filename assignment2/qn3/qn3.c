@@ -129,7 +129,11 @@ char **shell_split_line(char *cmd){
 
         //Gets fd for the io redirect
         io_redirect_fd = open(arg, O_WRONLY | O_CREAT, 0666);
-        if (io_redirect_fd == -1){
+        stat(arg, &buf);
+        if (S_ISDIR(buf.st_mode)){
+            printf("BudgetShell: %s is a directory\n", arg);
+            return NULL;
+        } else if (io_redirect_fd == -1){
             printf("BudgetShell: cannot create regular file '%s': Permission denied\n", arg);
             return NULL;
         }
