@@ -238,7 +238,7 @@ int cmd_copy(char **args){
              } else if (num_arg + 1 == 2){  //Check if destination file/directory is given
                  printf("cp: missing destination file operand after '%s'\n", *(args + num_arg));
                  return 1;
-             } else if (num_arg + 1 > 3){
+             } else if (num_arg + 1 > 3){ //Check if the target exist and it is a directory
                  if (is_file_exist < 0){
                      printf("cp: target '%s' is not a directory\n", *(args + num_arg));
                      return 1;
@@ -247,13 +247,14 @@ int cmd_copy(char **args){
                      return 1;
                  }
              }
-             destination = *(args + num_arg);
+             destination = *(args + num_arg); //Save the name of the destination
         }
         num_arg++;
     } while (*(args + num_arg) != NULL);
 
+    // This loop will copy files from the 1st argument to num_arg-1 argument
     for (int i = 1; i < num_arg - 1; i++){
-
+        // Checks if the source file exist
         if (stat(*(args + i), &stat_source_buf) < 0){
             printf("cp: cannot stat '%s': No such file or directory\n", args[i]);
             continue;
@@ -262,26 +263,26 @@ int cmd_copy(char **args){
         mode_t mode = stat_source_buf.st_mode;
         source_fd = open(*(args + i), O_RDONLY);
 
-        if (source_fd == -1){
+        if (source_fd == -1){   //Check if permission is given to access file
             printf("cp: cannot open '%s' for reading: Permission denied\n", args[i]);
             return 1;
         }
 
-        if (stat_source_buf.st_ino == stat_dest_buf.st_ino){
+        if (stat_source_buf.st_ino == stat_dest_buf.st_ino){ // prevents copy if both the source and destination are the same file name
             printf("cp: '%s' and '%s' are the same file\n", *(args + i), destination);
             close(source_fd);
             continue;
         }
 
-        if (S_ISDIR(mode)){
+        if (S_ISDIR(mode)){ //copy directory to directory will be excluded
             printf("cp: omitting directory '%s'\n", args[i]);
             close(source_fd);
             continue;
         }
-        if (S_ISREG(mode) && !S_ISDIR(stat_dest_buf.st_mode)){
+        if (S_ISREG(mode) && !S_ISDIR(stat_dest_buf.st_mode)){ //Copy from file to file
 
             dest_fd = open(args[num_arg - 1], O_WRONLY | O_CREAT, mode);
-            if (dest_fd == -1){
+            if (dest_fd == -1){ // Check if permission is given to write
                 printf("cp: cannot create regular file '%s': Permission denied\n", args[num_arg - 1]);
                 close_files(source_fd, dest_fd);
                 return 1;
@@ -289,26 +290,26 @@ int cmd_copy(char **args){
                 copy_file(source_fd, dest_fd);
                 close_files(source_fd, dest_fd);
 
-        } else {
+        } else {// Copy from file to directory
             char file_path[BUF_SIZE];
             struct stat stat_dest;
             snprintf(file_path, sizeof(file_path), "%s/%s", args[num_arg - 1], basename(args[i]));
 
             dest_fd = open(file_path, O_WRONLY | O_CREAT, mode);
 
-            if (dest_fd == -1){
+            if (dest_fd == -1){ //Check if permission is given to acess directory
                 printf("cp: cannot stat '%s': No such file or directory\n", file_path);
                 close_files(source_fd, dest_fd);
                 return 1;
             }
             fstat(dest_fd, &stat_dest);
-            if (stat_source_buf.st_ino == stat_dest.st_ino){
+            if (stat_source_buf.st_ino == stat_dest.st_ino){ // Check for same file name
                 printf("cp: '%s' and '%s' are the same file\n", *(args + i), file_path);
                 close_files(source_fd, dest_fd);
                 return 1;
             }
 
-
+            // Start copy
             copy_file(source_fd, dest_fd); 
             close_files(source_fd, dest_fd);
         }
