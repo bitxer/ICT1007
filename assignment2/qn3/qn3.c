@@ -231,7 +231,7 @@ int cmd_copy(char **args){
 
             if (num_arg + 1 == 1){  //Check if command is supplied with 'cp' and no other arguments
                  printf("cp: missing file operand\n");
-                 printf("cp [source] [destination]\ncp [source] ... [directory]");
+                 printf("cp [source] [destination]\ncp [source] ... [directory]\n");
                  return 1;
              } else if (num_arg + 1 == 2){  //Check if destination file/directory is given
                  printf("cp: missing destination file operand after '%s'\n", *(args + num_arg));
