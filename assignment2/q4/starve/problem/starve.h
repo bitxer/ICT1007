@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 
 #include <libgen.h>
 #include <sys/types.h>
@@ -24,6 +25,7 @@ struct Arguments {
     int thread_id;
     char * src;
     char * dest;
+    double t_execution;
 };
 
 typedef struct Arguments ARGS;
