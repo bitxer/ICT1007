@@ -171,7 +171,6 @@ char **shell_split_line(char *cmd){
 int shell_execute_line(char **args){
     pid_t pid;
     int status;
-    int saved_stdout;
     // Check if exit command is given to exit the shell
     if ( strcmp(args[CMD], CMD_EXIT) == 0){
         return cmd_exit();
@@ -179,14 +178,12 @@ int shell_execute_line(char **args){
 
     // forks the process to run the command
     if ((pid = fork()) == -1){
-        perror("Fork Error");   //If failed, close the process
+        perror("Fork Error");       //If failed, close the process
         exit(EXIT_FAILURE);
-    } else if (pid == 0){   //Enter here if the process is the child
-        if (io_redirect_fd > 1){                    // Check if it is io redirection
-            saved_stdout = dup(STDOUT_FILENO);      //Save a copy of stdout to restore after child execution
-            dup2(io_redirect_fd, STDOUT_FILENO);    // dup io redirect fd so that stdout will be sent to file instead of command prompt
-            close(io_redirect_fd);
-            io_redirect_fd = 1;
+    } else if (pid == 0){           //Enter here if the process is the child
+        if (io_redirect_fd > 1){    // Check if it is io redirection
+            close(STDOUT_FILENO);   //Perform I/O redirection on child                
+            dup(io_redirect_fd);
         } 
         if ( strcmp(args[CMD], CMD_PWD) == 0){      //Checks if cmd is "pwd"
             status = cmd_pwd();
@@ -195,12 +192,9 @@ int shell_execute_line(char **args){
         } else {
             printf("Command '%s' not found.\n", args[CMD]);
         }
-
-        //Restore STDOUT
-        dup2(saved_stdout, STDOUT_FILENO);
-        close(saved_stdout);
-        exit(status);   //Command execution ends here
+        exit(status); // command execution end here
     }
+    io_redirect_fd = -1;            // reset I/O redirection
     pid = waitpid(pid, &status, 0); // Waits for command to finish executing
     return status;
 }
