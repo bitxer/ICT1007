@@ -1,3 +1,7 @@
+/*
+ * Written by: YongZe (@bitxer)
+ */
+
 #include "starve.h"
 
 /*

@@ -1,3 +1,7 @@
+/*
+ * Written by: YongZe (@bitxer)
+ */
+
 #ifndef _PAPER1_H
 #define _PAPER1_H
 

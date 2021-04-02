@@ -1,3 +1,7 @@
+/*
+ * Written by: YongZe (@bitxer)
+ */
+
 #include <stdio.h>
 #include <pthread.h>
 
