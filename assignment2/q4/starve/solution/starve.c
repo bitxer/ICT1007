@@ -45,8 +45,9 @@ void * copy(void * _args) {
     }
 
     // Copy file contents
-    while (fread(buffer, sizeof(buffer), 1, f_src) != 0) {
-        fwrite(buffer, sizeof(buffer), 1, f_dst);
+    int nread = 0;
+    while (nread = fread(buffer, 1, sizeof(buffer), f_src) ) {
+        fwrite(buffer, 1, nread, f_dst);
     }
 
     // Close file
@@ -103,7 +104,7 @@ int main(int argc, char * argv[]) {
         // Setup arguments
         args[i]->thread_id = i + 1;
         snprintf(args[i]->src, s_src, "%s", argv[1]);
-        snprintf(args[i]->dest, s_dest, "%s/%s%d", argv[2], f_name, i);
+        snprintf(args[i]->dest, s_dest, "%s/%s%d", argv[2], f_name, i + 1);
 
         // Create threads
         pthread_create(&t[i], NULL, copy, args[i]);
