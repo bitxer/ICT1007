@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-// Initialise 
+// Initialise golabl variables
 #define GATE_COUNT_FNAME "gate.count"
 #define VISITOR_COUNT_FNAME "visitor.count"
 #define EXIT_COUNT_FNAME "exit.count"
