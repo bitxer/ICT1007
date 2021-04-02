@@ -13,32 +13,28 @@ void * copy(void * _args) {
     // Intiliase buffer
     char buffer[10];
 
+    // Take note of current time to indicate start of current thread execution
     time_t start = time(NULL);
     pthread_mutex_lock(&print_lock);
-    // Critical section
     printf("Thread-%d initialised\n", args->thread_id);
-    // End Critical section
     pthread_mutex_unlock(&print_lock);
     if (args->thread_id > 99) {
         // Check if thread id is valid
         pthread_exit(NULL);
     }
     
-
     pthread_mutex_lock(&print_lock);
-    // Critical section
     printf("Thread-%d is copying files\n", args->thread_id);
-    // End Critical section
     pthread_mutex_unlock(&print_lock);
 
     // Open files for reading
     FILE * f_src = fopen(args->src, "rb");
     FILE * f_dst = fopen(args->dest, "w+");
     
-    // Check if destination file is opened directly
+    // Check if destination file is opened
     if (f_dst == NULL) {
+        // Handle if destination file cannot be opened
         pthread_mutex_lock(&print_lock);
-        // Critical section
         printf("Thread-%d: Error creating file %s\n", args->thread_id, args->dest);
         pthread_mutex_unlock(&print_lock);
         pthread_exit(NULL);
@@ -54,11 +50,15 @@ void * copy(void * _args) {
     fclose(f_dst);
     fclose(f_src);
 
+    // Take note of current time to indicate start of current thread execution
     time_t end = time(NULL);
-    args->t_execution = end - start;
+
     pthread_mutex_lock(&print_lock);
     printf("Thread-%d completed\n", args->thread_id);
     pthread_mutex_unlock(&print_lock);
+
+    // Execution time of current thread
+    args->t_execution = end - start;
     pthread_exit(NULL);
 }
 
@@ -82,15 +82,17 @@ int main(int argc, char * argv[]) {
         mkdir(argv[2], 0700);
     }
 
+    // Get file name from src in case file is a path
     char * f_name = basename(argv[1]);
     int s_src = strlen(argv[1]) + 1;
     int s_dest = strlen(f_name) + 1 + strlen(argv[2]) + 3;
 
-    //Initialize mutex
+    //Initialize variables for use in threads
     pthread_mutex_init(&print_lock, NULL);
     pthread_t t[5];
-
     ARGS_PTR args[5];
+
+    // Start of actual execution
     time_t start = time(NULL);
     for (int i = 0; i < 5; i++) {
         printf("Initialising Thread-%d\n", i + 1);
@@ -110,19 +112,26 @@ int main(int argc, char * argv[]) {
         pthread_create(&t[i], NULL, copy, args[i]);
     }
 
+    // Wait for all threads to finish execution
     for (int i = 0; i < 5; i++) {
         pthread_join(t[i], NULL);
     }
-    
+
+    // End of execution for all threads
     time_t end = time(NULL);
+
+    // Compute total execution time for all threads
     int t_execution = end - start;
 
+    // Print execution time for individual threads
     printf("\n---- Time taken for each thread ---\n");
     for (int i = 0; i < 5; i++) {
         printf("Thread-%d took %ds to run\n", args[i]->thread_id, args[i]->t_execution);
     }
 
+    // Print total execution time
     printf("\nTotal execution time: %ds\n", t_execution);
+    
     // Destroy mutex after use
     pthread_mutex_destroy(&print_lock);
     return 0;
