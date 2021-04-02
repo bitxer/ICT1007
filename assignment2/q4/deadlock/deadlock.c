@@ -309,10 +309,12 @@ void printHelp(const char* name) {
     printf("Each thread will read file_n.txt and will \nappend the contents ");
     printf("over to file_n+1.txt.\n");
     printf("===========================================\n");
-    printf("usage:\t%s [flags]\n", name);
+    printf("usage:\t%s [flags] [-n <number of processes>]\n", name);
     printf("-d\tdeadlock mode\n");
     printf("-h\tprint this help menu\n");
+    printf("-n\tnumber of processes to create <insert number>\n");
     printf("-s\tsolve the deadlock\n");
+
     return;
 }
 
@@ -323,9 +325,10 @@ void printHelp(const char* name) {
 int main(int argc, char* argv[]) {
     int opt = 0;
     void *function_to_run = NULL;
+    NUMBER_OF_THREADS = 5;
     
     if (argc > 1) {
-        while ((opt = getopt(argc, argv, "dhs")) != -1) {
+        while ((opt = getopt(argc, argv, "dhsn:")) != -1) {
             switch (opt) {
                 case 'd':
                     function_to_run = cause_a_deadlock;
@@ -337,6 +340,14 @@ int main(int argc, char* argv[]) {
                     // solution mode
                     function_to_run = fix_a_deadlock;
                     break;
+                case 'n':
+                    NUMBER_OF_THREADS = atoi(optarg);
+                    if (NUMBER_OF_THREADS == 0) {
+                        printHelp(argv[0]);
+                        return -1;
+                    } else {
+                        break;
+                    }
                 default: /* '?' */
                     printHelp(argv[0]);
                     return -1;
@@ -349,34 +360,23 @@ int main(int argc, char* argv[]) {
 
     srand(time(0));
 
-    pthread_t thread_1, thread_2, thread_3, thread_4, thread_5;
-    
-    mutex_map *first_mutex_map, *second_mutex_map, *third_mutex_map, *fourth_mutex_map, *fifth_mutex_map;
-    mutex_map *head = NULL;
-    
+    pthread_mutex_t mutex_array[NUMBER_OF_THREADS];
+    pthread_t thread_array[NUMBER_OF_THREADS];
+    thread_params *thread_params_array[NUMBER_OF_THREADS];
+    mutex_map* mutex_map_array[NUMBER_OF_THREADS];
+    mutex_map* head = NULL;
 
-    thread_params *first_tp = createMutexMap(&first_mutex_map, 1, &first_mutex, &head);
-    thread_params *second_tp = createMutexMap(&second_mutex_map, 2, &second_mutex, &head);
-    thread_params *third_tp = createMutexMap(&third_mutex_map, 3, &third_mutex, &head);
-    thread_params *fourth_tp = createMutexMap(&fourth_mutex_map, 4, &fourth_mutex, &head);
-    thread_params *fifth_tp = createMutexMap(&fifth_mutex_map, 5, &fifth_mutex, &head);
+    for (int i=0; i<NUMBER_OF_THREADS; i++) {
+        thread_params* tp = createMutexMap(&mutex_map_array[i], i+1, &mutex_array[i], &head);
+        addToList(&head, &mutex_map_array[i]);
+        thread_params_array[i] = tp;
+    }
 
-    addToList(&head, &first_mutex_map);
-    addToList(&head, &second_mutex_map);
-    addToList(&head, &third_mutex_map);
-    addToList(&head, &fourth_mutex_map);
-    addToList(&head, &fifth_mutex_map);
-    
+    for (int i=0; i<NUMBER_OF_THREADS; i++) {
+        pthread_create(&thread_array[i], NULL, function_to_run, thread_params_array[i]);
+    }
 
-    pthread_create(&thread_1, NULL, function_to_run, first_tp);
-    pthread_create(&thread_2, NULL, function_to_run, second_tp);
-    pthread_create(&thread_3, NULL, function_to_run, third_tp);
-    pthread_create(&thread_4, NULL, function_to_run, fourth_tp);
-    pthread_create(&thread_5, NULL, function_to_run, fifth_tp);
-
-    pthread_join(thread_1, NULL);
-    pthread_join(thread_2, NULL);
-    pthread_join(thread_3, NULL);
-    pthread_join(thread_4, NULL);
-    pthread_join(thread_5, NULL);
+    for (int i=0; i<NUMBER_OF_THREADS; i++) {
+        pthread_join(thread_array[i], NULL);
+    }
 }
