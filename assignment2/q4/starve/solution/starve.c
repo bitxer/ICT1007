@@ -52,6 +52,7 @@ void * copy(void * _args) {
     fclose(f_dst);
     fclose(f_src);
 
+    printf("Thread-%d completed\n", args->thread_id);
     pthread_exit(NULL);
 }
 
@@ -85,7 +86,7 @@ int main(int argc, char * argv[]) {
     pthread_t t[5];
 
     for (int i = 0; i < 5; i++) {
-        printf("Initialising Thread-%d\n", i);
+        printf("Initialising Thread-%d\n", i + 1);
         // Initialising args
         ARGS_PTR args = malloc(sizeof(ARGS));
 
@@ -94,7 +95,7 @@ int main(int argc, char * argv[]) {
         args->dest = malloc(s_dest);
         
         // Setup arguments
-        args->thread_id = i;
+        args->thread_id = i + 1;
         snprintf(args->src, s_src, "%s", argv[1]);
         snprintf(args->dest, s_dest, "%s/%s%d", argv[2], f_name, i);
 
