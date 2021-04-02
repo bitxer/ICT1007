@@ -13,7 +13,7 @@ void * copy(void * _args) {
     // Intiliase buffer
     char buffer[10];
 
-    clock_t start = clock();
+    time_t start = time(NULL);
     pthread_mutex_lock(&print_lock);
     // Critical section
     printf("Thread-%d initialised\n", args->thread_id);
@@ -54,8 +54,8 @@ void * copy(void * _args) {
     fclose(f_dst);
     fclose(f_src);
 
-    clock_t end = clock();
-    args->t_execution = (end - start) / CLOCKS_PER_SEC;
+    time_t end = time(NULL);
+    args->t_execution = end - start;
     pthread_mutex_lock(&print_lock);
     printf("Thread-%d completed\n", args->thread_id);
     pthread_mutex_unlock(&print_lock);
@@ -91,7 +91,7 @@ int main(int argc, char * argv[]) {
     pthread_t t[5];
 
     ARGS_PTR args[5];
-    clock_t start = clock();
+    time_t start = time(NULL);
     for (int i = 0; i < 5; i++) {
         printf("Initialising Thread-%d\n", i + 1);
         // Initialising args
@@ -114,14 +114,15 @@ int main(int argc, char * argv[]) {
         pthread_join(t[i], NULL);
     }
     
-    clock_t end = clock();
-    double t_execution = (end - start) / CLOCKS_PER_SEC;
+    time_t end = time(NULL);
+    int t_execution = end - start;
+
     printf("\n---- Time taken for each thread ---\n");
     for (int i = 0; i < 5; i++) {
-        printf("Thread-%d took %.2fs to run\n", args[i]->thread_id, args[i]->t_execution);
+        printf("Thread-%d took %ds to run\n", args[i]->thread_id, args[i]->t_execution);
     }
 
-    printf("\nTotal execution time: %.2fs\n", t_execution);
+    printf("\nTotal execution time: %ds\n", t_execution);
     // Destroy mutex after use
     pthread_mutex_destroy(&print_lock);
     return 0;

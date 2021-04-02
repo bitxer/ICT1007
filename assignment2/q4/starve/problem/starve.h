@@ -25,7 +25,7 @@ struct Arguments {
     int thread_id;
     char * src;
     char * dest;
-    double t_execution;
+    int t_execution;
 };
 
 typedef struct Arguments ARGS;
