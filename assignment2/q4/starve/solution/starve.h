@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 
 // Create mutex
-pthread_mutex_t mutex;
+pthread_mutex_t print_lock;
 
 // Struct to hold arguments passed to thread
 // It also holds some return values
