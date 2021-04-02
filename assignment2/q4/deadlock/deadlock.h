@@ -33,6 +33,6 @@ void writeFile(char** buffer, int key, int* filesize);
 void *cause_a_deadlock(void *param);
 void *fix_a_deadlock(void *param);
 void traverseList(mutex_map** head);
-void printHelp(const char* name, const char* option);
+void printHelp(const char* name);
 int main(int argc, char* argv[]);
 

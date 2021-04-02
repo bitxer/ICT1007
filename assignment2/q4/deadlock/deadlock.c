@@ -1,5 +1,18 @@
 #include "deadlock.h"
 
+/*
+    createMutexMap()
+    Initializes the mutex and uses the key to create a Mutex Map structure
+    This also takes in the head to create the linked list for later
+    ---------------
+    Parameters
+    ---------------
+    mutex_map** dict: [pass by reference] the pointer of the mutex_map struct pointer so that you can create the dict (it's a dict cause its effectively a dictionary structure)
+    int key: the number ID to be assigned to this particular Mutex, to be put into the mutex map
+    pthread_mutex_t*: pointer to the pthread_mutex_t object, to be put into the mutex map
+    mutex_map** head: [pass by reference] the pointer to the mutex_map struct pointer in order to create a linked list for later
+    Returns the thread_param struct so that both the mutex map and the dict can be passed into the pthread_create() function
+*/
 thread_params *createMutexMap(mutex_map** dict, int key, pthread_mutex_t* mutex, mutex_map** head) {
     int resp = pthread_mutex_init(mutex, NULL);
     assert(resp == 0);
@@ -14,6 +27,15 @@ thread_params *createMutexMap(mutex_map** dict, int key, pthread_mutex_t* mutex,
     return tp;
 }
 
+/*
+    addToList()
+    Adds a given Mutex Map into the linked list
+    ---------------
+    Parameters
+    ---------------
+    mutex_map** head: head of the linked list
+    mutex_map** mutex: the mutex to add to the linked list
+*/
 void addToList(mutex_map** head, mutex_map** mutex) {
     if (*head == NULL) {
         *head = *mutex;
@@ -32,6 +54,16 @@ void addToList(mutex_map** head, mutex_map** mutex) {
 
 }
 
+/*
+    readFile()
+    opens the file in ./files/file_<key>.txt, and reads the file contents into the buffer and stores the file size into the filesize variable
+    ---------------
+    Parameters
+    ---------------
+    char** buffer: pointer to the character pointer buffer that will hold the contents of the file
+    int key: the file number to read
+    int* filesize: the pointer to the int that will hold the filesize
+*/
 void readFile(char** buffer, int key, int* filesize) {
     FILE *fp;
 
@@ -54,12 +86,24 @@ void readFile(char** buffer, int key, int* filesize) {
     fclose(fp);
 }
 
+/*
+    writeFile()
+    opens the file in ./files/file_<key>.txt, and writes the given content into the new line
+    ---------------
+    Parameters
+    ---------------
+    char** buffer: pointer to the character pointer buffer that will hold the contents of the file
+    int key: the file number to write to
+    int* filesize: the pointer to the int that will hold the filesize
+*/
 void writeFile(char** buffer, int key, int* filesize) {
     FILE *fp;
 
     char* filename = (char*)calloc(BUFFER_SIZE, sizeof(char));
     int file_id = 0;
     
+    // increments the key, because we want to write to the NEXT file
+    // checks if its the last thread, if it is, loop back to 1
     if (key == NUMBER_OF_THREADS) {
         file_id = 1;
     } else {
@@ -77,6 +121,14 @@ void writeFile(char** buffer, int key, int* filesize) {
     fclose(fp);
 }
 
+/*
+    cause_a_deadlock()
+    Obviously, this function will cause a deadlock, by holding on to the mutex while requesting for another (hopefully locked) mutex
+    ---------------
+    Parameters
+    ---------------
+    void* param: pointer to the thread_params*
+*/
 void *cause_a_deadlock(void *param) {
     thread_params *tp = (thread_params*) param;
     mutex_map **map = tp->map;
@@ -145,6 +197,14 @@ void *cause_a_deadlock(void *param) {
     pthread_exit(0);
 }
 
+/*
+    fix_a_deadlock()
+    Again, this function will NOT cause a deadlock, but instead, fix the problem by releasing on to the mutex before requesting for another (hopefully locked) mutex
+    ---------------
+    Parameters
+    ---------------
+    void* param: pointer to the thread_params*
+*/
 void *fix_a_deadlock(void *param) {
     thread_params *tp = (thread_params*) param;
     mutex_map **map = tp->map;
@@ -217,6 +277,14 @@ void *fix_a_deadlock(void *param) {
     pthread_exit(0);
 }
 
+/*
+    traverseList()
+    Originally for testing purposes, it's just to traverse and print out the key of each mutex map in the linked list
+    ---------------
+    Parameters
+    ---------------
+    mutex_map** head: the head of the linked list
+*/
 void traverseList(mutex_map** head) {
     mutex_map *temp = *head;
     while (temp != NULL) {
@@ -226,10 +294,14 @@ void traverseList(mutex_map** head) {
 }
 
 /*
-     printHelp
+    printHelp()
     prints the help menu
+    ---------------
+    Parameters
+    ---------------
+    const char* name: the name of the program, usually argv[0]
 */
-void printHelp(const char* name, const char* option) {
+void printHelp(const char* name) {
     printf("===========================================\n");
     printf("DEADLOCK\n");
     printf("This program simulates and solves deadlock.\n\n");
@@ -244,6 +316,10 @@ void printHelp(const char* name, const char* option) {
     return;
 }
 
+/*
+    main()
+    who doesn't love the main? very standard
+*/
 int main(int argc, char* argv[]) {
     int opt = 0;
     void *function_to_run = NULL;
@@ -255,19 +331,19 @@ int main(int argc, char* argv[]) {
                     function_to_run = cause_a_deadlock;
                     break;
                 case 'h':
-                    printHelp(argv[0], argv[1]);
+                    printHelp(argv[0]);
                     return 0;
                 case 's':
                     // solution mode
                     function_to_run = fix_a_deadlock;
                     break;
                 default: /* '?' */
-                    printHelp(argv[0], argv[1]);
+                    printHelp(argv[0]);
                     return -1;
             }
         }
     } else {
-        printHelp(argv[0], argv[1]);
+        printHelp(argv[0]);
         return -1;
     }
 
