@@ -55,3 +55,8 @@ dkms.conf
 paper2/.vscode
 paper2/algo
 paper2/sjf
+out/
+
+*.problem
+*.solution
+*.count
